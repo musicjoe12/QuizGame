@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import './ResultsDisplay.css'; // Import the CSS file
 
 const ResultsDisplay = () => {
     const [result, setResult] = useState(null); 
+    const [points, setPoints] = useState(0);
 
     useEffect(() => {
         const intervalId = setInterval(fetchResult, 5000); 
@@ -17,6 +19,9 @@ const ResultsDisplay = () => {
             if (response.status === 200) {
                 console.log('✅ Received result from server:', response.data.result);
                 setResult(response.data.result);
+                if (response.data.result === 'correct') {
+                    setPoints(points + response.data.points); // Assuming the API returns points
+                }
             } else if (response.status === 204) {
                 console.log('⚠️ No new result available');
                 setResult(null); 
@@ -27,9 +32,10 @@ const ResultsDisplay = () => {
     };
 
     return (
-        <div>
+        <div className="results-container">
             <h1>Game Result</h1>
             <p>{result ? `Result: ${result}` : 'Waiting for result...'}</p>
+            <p>Points: {points}</p>
         </div>
     );
 };
