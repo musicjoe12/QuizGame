@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ResultsDisplay.css'; // Import the CSS file
+import boxImage from '../Images/no 2 box.png'; // Adjust the path to your image
 
 const ResultsDisplay = () => {
     const [result, setResult] = useState(null); 
@@ -36,6 +37,11 @@ const ResultsDisplay = () => {
             <h1>Game Result</h1>
             <p>{result ? `Result: ${result}` : 'Waiting for result...'}</p>
             <p>Points: {points}</p>
+            <img 
+                src={boxImage} 
+                alt="Result Box" 
+                className={`result-image ${result === 'Result2' ? 'flip' : ''}`} 
+            />
         </div>
     );
 };
