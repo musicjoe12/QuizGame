@@ -1,14 +1,15 @@
-// Assuming you're using Express.js
+
 const express = require('express');
 const app = express();
 const port = 5000;
+const cors = require('cors'); 
 
-let currentResult = null; // To store the current result received from Unity
 
-// Middleware to handle POST request from Unity
-app.use(express.json()); // Ensure that JSON data can be parsed
+let currentResult = null; 
 
-// Endpoint to receive results from Unity (POST)
+app.use(cors());
+app.use(express.json()); 
+
 app.post('/api/result', (req, res) => {
     const { result } = req.body;
     console.log('Received result from Unity:', result);
@@ -16,7 +17,7 @@ app.post('/api/result', (req, res) => {
     res.status(200).send({ message: 'Result received' });
 });
 
-// Endpoint to send the latest result to the React app (GET)
+
 app.get('/api/result', (req, res) => {
     if (currentResult) {
         return res.status(200).json({ result: currentResult });

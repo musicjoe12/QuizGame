@@ -1,48 +1,34 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const ResultsDisplay = () => {
-    const [result, setResult] = useState(null);  // State to store the result
-    const [loading, setLoading] = useState(false); // State to manage loading status
-    const [error, setError] = useState(null); // State to manage any errors
+    const [result, setResult] = useState(null); 
 
-    // Fetch the result from the backend every 5 seconds
     useEffect(() => {
-        const intervalId = setInterval(() => {
-            fetchResult();
-        }, 5000); // Polling every 5 seconds
+        const intervalId = setInterval(fetchResult, 5000); 
 
-        // Clean up the interval when the component unmounts
-        return () => clearInterval(intervalId);
+        return () => clearInterval(intervalId); 
     }, []);
 
-    // Function to fetch result from the API
     const fetchResult = async () => {
-        setLoading(true);
-        setError(null);  // Clear any previous error
-
         try {
-            const response = await fetch('http://localhost:5000/api/result'); // Ensure correct endpoint
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            const data = await response.json();
-            console.log('Received result from Unity:', data.result);  // Log result for debugging
+            const response = await axios.get('http://localhost:5000/api/result');
 
-            // Update the result state
-            setResult(data.result);
+            if (response.status === 200) {
+                console.log('✅ Received result from server:', response.data.result);
+                setResult(response.data.result);
+            } else if (response.status === 204) {
+                console.log('⚠️ No new result available');
+                setResult(null); 
+            }
         } catch (error) {
-            console.error('API request failed:', error);
-            setError('Failed to fetch result. Please try again.');
-        } finally {
-            setLoading(false);
+            console.error('❌ API request failed:', error);
         }
     };
 
     return (
         <div>
             <h1>Game Result</h1>
-            {loading && <p>Loading...</p>}  {/* Show loading message */}
-            {error && <p style={{ color: 'red' }}>{error}</p>} {/* Show error message */}
             <p>{result ? `Result: ${result}` : 'Waiting for result...'}</p>
         </div>
     );
