@@ -1,13 +1,12 @@
 import React, { useState } from "react";
-import { Form, Input, Button, message, Modal } from "antd";
+import { Form, Input, Button, message, Card } from "antd";
 import axios from "axios";
 
 const Register = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
-  // ✅ Fix: Ensure Axios properly sends data
+  // ✅ Register Function
   const registerUser = async (values) => {
     console.log("📤 Sending data to backend:", values);
     setLoading(true);
@@ -16,9 +15,7 @@ const Register = () => {
       .then(response => {
         console.log("✅ Registration successful:", response.data);
         message.success("✅ Registration successful!");
-
-        setIsModalOpen(false);
-        form.resetFields();
+        form.resetFields(); // ✅ Clear form fields
       })
       .catch(error => {
         console.error("❌ Registration failed:", error.response?.data || error);
@@ -30,15 +27,11 @@ const Register = () => {
   };
 
   return (
-    <>
-      <Button type="default" onClick={() => { form.resetFields(); setIsModalOpen(true); }}>
-        Register
-      </Button>
-
-      <Modal title="Register" open={isModalOpen} onCancel={() => setIsModalOpen(false)} footer={null}>
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
+      <Card title="Register" style={{ width: 400 }}>
         <Form layout="vertical" form={form} onFinish={registerUser}>
           <Form.Item label="Username" name="username" rules={[{ required: true, message: "Username is required!" }]}>
-            <Input allowClear autoFocus type="text" />
+            <Input allowClear autoFocus />
           </Form.Item>
           <Form.Item label="Email" name="email" rules={[{ required: true, type: "email", message: "Valid email is required!" }]}>
             <Input allowClear />
@@ -52,8 +45,8 @@ const Register = () => {
             </Button>
           </Form.Item>
         </Form>
-      </Modal>
-    </>
+      </Card>
+    </div>
   );
 };
 
