@@ -1,31 +1,57 @@
-const User = require('./userModel');
+const User = require('./userModel'); // ✅ Ensure correct path
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-// User Registration
+// ✅ Register User
 exports.registerUser = async (req, res) => {
     try {
+        console.log("📥 Received Registration Data:", req.body); // ✅ Debug log
+
         const { username, email, password } = req.body;
 
-        // Check if user already exists
+        if (!username || !email || !password) {
+            return res.status(400).json({ message: "❌ All fields are required!" });
+        }
+
         let userExists = await User.findOne({ email });
-        if (userExists) return res.status(400).json({ message: "❌ Email already in use!" });
+        if (userExists) {
+            console.log("⚠️ User already exists:", email);
+            return res.status(400).json({ message: "❌ Email already in use!" });
+        }
 
-        // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Create new user
         const newUser = new User({ username, email, password: hashedPassword });
-        await newUser.save();
 
-        res.status(201).json({ message: "✅ User registered successfully!" });
+        await newUser.save();
+        console.log("✅ User saved successfully:", newUser);
+
+        res.status(201).json({ message: "✅ Registration successful!", user: newUser });
     } catch (error) {
-        res.status(400).json({ message: "❌ Registration failed", error });
+        console.error("❌ Registration error:", error);
+        res.status(500).json({ message: "❌ Server error", error });
     }
 };
 
-// Update User Points
+// ✅ Login User
+exports.loginUser = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const user = await User.findOne({ email });
+        if (!user) return res.status(400).json({ message: "❌ User not found" });
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(400).json({ message: "❌ Invalid credentials" });
+
+        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+        res.json({ message: "✅ Login successful!", token });
+    } catch (error) {
+        res.status(500).json({ message: "❌ Server error", error });
+    }
+};
+
+// ✅ Update User Points
 exports.updatePoints = async (req, res) => {
     try {
         const { username, points } = req.body;

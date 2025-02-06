@@ -8,6 +8,12 @@ require('dotenv').config({ path: './config.env' });
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+app.use(cors({
+    origin: "http://localhost:3000", // Ensure frontend is allowed
+    credentials: true
+  }));
+  app.use(bodyParser.json());
+  
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
