@@ -38,7 +38,7 @@ const Register = () => {
       <Modal title="Register" open={isModalOpen} onCancel={() => setIsModalOpen(false)} footer={null}>
         <Form layout="vertical" form={form} onFinish={registerUser}>
           <Form.Item label="Username" name="username" rules={[{ required: true, message: "Username is required!" }]}>
-            <Input allowClear autoFocus />
+            <Input allowClear autoFocus type="text" />
           </Form.Item>
           <Form.Item label="Email" name="email" rules={[{ required: true, type: "email", message: "Valid email is required!" }]}>
             <Input allowClear />
