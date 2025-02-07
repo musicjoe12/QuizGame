@@ -6,14 +6,24 @@ const { Header } = Layout;
 
 const Navbar = ({ user, setUser }) => {
   const navigate = useNavigate();
+  const [role, setRole] = useState(localStorage.getItem("role"))
 
-  // ✅ Logout Function
+
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("username");
+    localStorage.removeItem("role"); 
     setUser(null);
-    navigate("/login"); // Redirect to login page after logout
+    setRole(null);
+    navigate("/login"); 
   };
+  useEffect(() => {
+    const storedRole = localStorage.getItem("role");
+    if (storedRole) {
+      setRole(storedRole);
+    }
+  }, [user]);
 
   return (
     <Header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#001529", padding: "0 20px" }}>
@@ -35,9 +45,14 @@ const Navbar = ({ user, setUser }) => {
             </Menu.Item> 
           </>
         )}
-      </Menu>
-
-      {/* ✅ Show Username & Logout if Logged In */}
+        
+        {user && role === "Staff" && (
+                  <Menu.Item key="createQuiz">
+                    <Link to="/create-quiz">📝 Create Quiz</Link>
+                  </Menu.Item>
+                )}
+              </Menu>
+      
       {user ? (
         <div style={{ color: "white", display: "flex", alignItems: "center", gap: "10px" }}>
           <span>👤 {user}</span>

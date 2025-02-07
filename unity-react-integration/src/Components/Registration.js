@@ -6,7 +6,6 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
-  // ✅ Register Function
   const registerUser = async (values) => {
     console.log("📤 Sending data to backend:", values);
     setLoading(true);
@@ -15,7 +14,7 @@ const Register = () => {
       .then(response => {
         console.log("✅ Registration successful:", response.data);
         message.success("✅ Registration successful!");
-        form.resetFields(); // ✅ Clear form fields
+        form.resetFields(); 
       })
       .catch(error => {
         console.error("❌ Registration failed:", error.response?.data || error);

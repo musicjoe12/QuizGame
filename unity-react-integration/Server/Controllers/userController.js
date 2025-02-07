@@ -1,12 +1,11 @@
-const User = require('./userModel'); // ✅ Ensure correct path
+const User = require('../Models/userModel'); 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-// ✅ Register User
 exports.registerUser = async (req, res) => {
     try {
-        console.log("📥 Received Registration Data:", req.body); // ✅ Debug log
+        console.log("📥 Received Registration Data:", req.body);
 
         const { username, email, password } = req.body;
 
@@ -33,34 +32,29 @@ exports.registerUser = async (req, res) => {
     }
 };
 
-// ✅ Login User
+
 exports.loginUser = async (req, res) => {
     try {
-        console.log("📥 Received Login Request:", req.body); // ✅ Log request data
-
         const { email, password } = req.body;
-        if (!email || !password) {
-            return res.status(400).json({ message: "❌ Email and password are required!" });
-        }
-
         const user = await User.findOne({ email });
 
         if (!user) {
-            console.log("❌ User not found:", email);
             return res.status(400).json({ message: "❌ User not found!" });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            console.log("❌ Invalid password for:", email);
             return res.status(400).json({ message: "❌ Invalid credentials!" });
         }
 
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" }
+        );
 
-        console.log("✅ Login successful:", { username: user.username, email: user.email });
 
-        res.json({ message: "✅ Login successful!", token, username: user.username }); // ✅ Send username
+        res.json({ message: "✅ Login successful!", token, username: user.username, role: user.role });
 
     } catch (error) {
         console.error("❌ Server Error in loginUser:", error);
@@ -69,7 +63,8 @@ exports.loginUser = async (req, res) => {
 };
 
 
-// ✅ Update User Points
+
+
 exports.updatePoints = async (req, res) => {
     try {
         const { username, points } = req.body;

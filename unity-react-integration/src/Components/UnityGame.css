@@ -3,10 +3,10 @@
   justify-content: center;
   align-items: center;
   height: 100vh;
-  width: 100vw; /* Ensure it covers the full viewport */
+  width: 100vw; 
   background-color: #282c34;
   color: white;
-  overflow: hidden; /* Prevents unwanted scrolling */
+  overflow: hidden; 
 }
 
 .game-container {
@@ -22,5 +22,5 @@ canvas {
   max-height: 100%;
   width: auto;
   height: auto;
-  object-fit: contain; /* Ensures it maintains aspect ratio */
+  object-fit: contain;
 }

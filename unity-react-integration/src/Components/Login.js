@@ -9,32 +9,33 @@ const Login = ({ setUser }) => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
-  // ✅ Handle Login
   const loginUser = async (values) => {
     console.log("📤 Sending login request:", values);
     setLoading(true);
-    setError(null); // ✅ Reset error on new attempt
+    setError(null);
 
     axios.post("http://localhost:5001/api/users/login", values)
       .then(response => {
         console.log("✅ Login successful:", response.data);
         message.success("✅ Login successful!");
 
-        // ✅ Store token & user in localStorage
+        // Store items
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("username", response.data.username);
+        localStorage.setItem("role", response.data.role); // ✅ Store role
 
         setUser(response.data.username);
-        navigate("/"); // ✅ Redirect to Home Page
+        navigate("/");
       })
       .catch(error => {
         console.error("❌ Login failed:", error.response?.data || error);
-        setError(error.response?.data?.message || "Login failed."); // ✅ Show error on page
+        setError(error.response?.data?.message || "Login failed.");
       })
       .finally(() => {
         setLoading(false);
       });
-  };
+};
+
 
   return (
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>

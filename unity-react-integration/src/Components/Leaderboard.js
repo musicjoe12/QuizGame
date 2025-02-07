@@ -6,7 +6,6 @@ const Leaderboard = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch Leaderboard Data
   useEffect(() => {
     axios.get("http://localhost:5001/api/users/leaderboard")
       .then(response => {
@@ -20,7 +19,6 @@ const Leaderboard = () => {
       });
   }, []);
 
-  // ✅ Define Table Columns
   const columns = [
     {
       title: "🏆 Rank",
