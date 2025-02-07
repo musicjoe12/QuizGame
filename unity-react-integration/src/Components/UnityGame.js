@@ -1,6 +1,7 @@
 import React from "react";
 import { Unity, useUnityContext } from "react-unity-webgl";
-import "./UnityGame.css";
+import "../Css/UnityGame.css";
+
 
 const UnityGame = () => {
     const { unityProvider } = useUnityContext({

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Card, Button, Row, Col, message } from 'antd';
-import './ResultsDisplay.css';
+import { Card, Button, Row, Col, Input, Select, message } from 'antd';
+import "../Css/ResultsDisplay.css";
 import boxImage from '../Images/no 2 box.png';
+
+const { Option } = Select;
 
 const ResultsDisplay = () => {
     const [result, setResult] = useState(null);
@@ -11,9 +13,9 @@ const ResultsDisplay = () => {
     const [selectedAnswers, setSelectedAnswers] = useState({});
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [quizLoaded, setQuizLoaded] = useState(false);
+    const [inputValue, setInputValue] = useState("");
 
     useEffect(() => {
-        // ✅ Listen for results from Unity API using SSE
         const eventSource = new EventSource('http://localhost:5000/api/result-stream');
 
         eventSource.onmessage = (event) => {
@@ -26,12 +28,10 @@ const ResultsDisplay = () => {
                 setPoints(prevPoints => prevPoints + data.points);
             }
 
-            // ✅ Fetch quiz only once
             if (!quizLoaded) {
-                fetchQuiz("67a612d9db2f59cfc4386aff");
+                fetchQuiz("67a62bc5db2f59cfc4386b03");
                 setQuizLoaded(true);
             } else {
-                // ✅ Move to the next question when new result is received
                 setCurrentQuestionIndex(prevIndex => prevIndex + 1);
             }
         };
@@ -76,6 +76,11 @@ const ResultsDisplay = () => {
         }
     };
 
+    const handleInputSubmit = () => {
+        handleAnswerClick(inputValue.trim());
+        setInputValue("");
+    };
+
     return (
         <div className="results-container">
             <h1>Game Result</h1>
@@ -108,7 +113,7 @@ const ResultsDisplay = () => {
                                                 </Button>
                                             </Col>
                                         ))
-                                    ) : (
+                                    ) : currentQuestion.type === "true_false" ? (
                                         <>
                                             <Col span={12}>
                                                 <Button
@@ -129,7 +134,55 @@ const ResultsDisplay = () => {
                                                 </Button>
                                             </Col>
                                         </>
-                                    )}
+                                    ) : currentQuestion.type === "fill_in_the_blank" ? (
+                                        <>
+                                            <Input 
+                                                placeholder="Type your answer..." 
+                                                value={inputValue} 
+                                                onChange={(e) => setInputValue(e.target.value)}
+                                                onPressEnter={handleInputSubmit}
+                                            />
+                                            <Button onClick={handleInputSubmit} style={{ marginTop: 10 }}>Submit</Button>
+                                        </>
+                                    ) : currentQuestion.type === "drag_and_drop" ? (
+                                        <>
+                                            <p>Drag and drop the correct words into the blanks:</p>
+                                            <Row gutter={16}>
+                                                {currentQuestion.choices.map((choice, i) => (
+                                                    <Col span={12} key={i}>
+                                                        <Button
+                                                            type={selectedAnswers[currentQuestionIndex] === choice ? "primary" : "default"}
+                                                            block
+                                                            onClick={() => handleAnswerClick(choice)}
+                                                        >
+                                                            {choice}
+                                                        </Button>
+                                                    </Col>
+                                                ))}
+                                            </Row>
+                                        </>
+                                    ) : currentQuestion.type === "matching" ? (
+                                        <>
+                                            <p>Match each term to its correct value:</p>
+                                            {Object.entries(currentQuestion.pairs).map(([key, value], i) => (
+                                                <Row key={i} gutter={16} style={{ marginBottom: 10 }}>
+                                                    <Col span={12}>
+                                                        <p>{key}</p>
+                                                    </Col>
+                                                    <Col span={12}>
+                                                        <Select 
+                                                            placeholder="Select a match"
+                                                            onChange={(val) => handleAnswerClick({ [key]: val })}
+                                                        >
+                                                            {Object.values(currentQuestion.pairs).map((option, index) => (
+                                                                <Option key={index} value={option}>{option}</Option>
+                                                            ))}
+                                                        </Select>
+                                                    </Col>
+                                                </Row>
+                                            ))}
+                                        </>
+                                    ) : null}
                                 </Row>
                             </Card>
                         );
