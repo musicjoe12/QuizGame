@@ -14,7 +14,7 @@ const Login = ({ setUser }) => {
     setLoading(true);
     setError(null);
 
-    axios.post("http://localhost:5001/api/users/login", values)
+    axios.post("http://localhost:5000/api/users/login", values)
       .then(response => {
         console.log("✅ Login successful:", response.data);
         message.success("✅ Login successful!");

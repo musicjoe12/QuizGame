@@ -7,7 +7,7 @@ const Leaderboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get("http://localhost:5001/api/users/leaderboard")
+    axios.get("http://localhost:5000/api/users/leaderboard")
       .then(response => {
         setUsers(response.data);
         setLoading(false);

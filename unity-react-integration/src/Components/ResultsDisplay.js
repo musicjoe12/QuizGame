@@ -48,7 +48,7 @@ const ResultsDisplay = () => {
 
     const fetchQuiz = async (quizId) => {
         try {
-            const response = await axios.get(`http://localhost:5001/api/quizzes/${quizId}`);
+            const response = await axios.get(`http://localhost:5000/api/quizzes/${quizId}`);
             if (response.status === 200) {
                 console.log("✅ Quiz fetched:", response.data);
                 setQuiz(response.data);

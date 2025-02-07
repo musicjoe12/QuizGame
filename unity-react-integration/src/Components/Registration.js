@@ -10,7 +10,7 @@ const Register = () => {
     console.log("📤 Sending data to backend:", values);
     setLoading(true);
 
-    axios.post("http://localhost:5001/api/users/register", values)
+    axios.post("http://localhost:5000/api/users/register", values)
       .then(response => {
         console.log("✅ Registration successful:", response.data);
         message.success("✅ Registration successful!");

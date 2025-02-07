@@ -8,7 +8,7 @@ const CreateQuiz = () => {
   const createQuiz = async (values) => {
     console.log("📤 Sending quiz data:", values);
     
-    axios.post("http://localhost:5001/api/quizzes/create", values)
+    axios.post("http://localhost:5000/api/quizzes/create", values)
       .then(response => {
         console.log("✅ Quiz created successfully:", response.data);
         message.success("✅ Quiz Created!");
