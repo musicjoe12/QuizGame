@@ -34,8 +34,7 @@ const App = () => {
                 <div style={{ width: "100%", textAlign: "center" }}>
                   <UnityGame />
                 </div>
-              } 
-            />
+              } />
             <Route path="/" element={<ResultDisplay />} />
             <Route path="/login" element={<Login setUser={setUser} />} />
             <Route path="/register" element={<Register />} />
