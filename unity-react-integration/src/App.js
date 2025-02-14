@@ -8,6 +8,7 @@ import Register from "./Components/Registration.js";
 import Navbar from "./Components/Navbar";
 import Leaderboard from "./Components/Leaderboard.js"; 
 import CreateQuiz from "./Components/CreateQuiz"; 
+import ResultHistory from "./Components/ResultHistory.js";
 
 const { Content } = Layout;
 
@@ -39,9 +40,9 @@ const AppContent = () => {
 
       {/* Page Content */}
       <Layout>
-      <div className="app-content"> 
+        <div className="app-content"> 
           <Routes>
-            <Route path="/" element={<ResultDisplay />} />
+            <Route path="/" element={[<ResultDisplay />, <ResultHistory />]} />
             <Route path="/login" element={<Login setUser={setUser} />} />
             <Route path="/register" element={<Register />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
