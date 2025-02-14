@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Card, Button, Row, Col, Input, Select, message } from 'antd';
+import { Card, Button, Row, Col, Input, Select, Checkbox, message } from 'antd';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import "../Css/ResultsDisplay.css";
 import boxImage from '../Images/no 2 box.png';
 
@@ -14,6 +16,8 @@ const ResultsDisplay = () => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [quizLoaded, setQuizLoaded] = useState(false);
     const [inputValue, setInputValue] = useState("");
+    const [draggedWord, setDraggedWord] = useState(null);
+    const [multiSelectAnswers, setMultiSelectAnswers] = useState([]);
 
     useEffect(() => {
         const eventSource = new EventSource('http://localhost:5000/api/result-stream');
@@ -68,7 +72,14 @@ const ResultsDisplay = () => {
             [currentQuestionIndex]: selectedAnswer
         }));
 
-        if (selectedAnswer === correctAnswer) {
+        if (Array.isArray(correctAnswer)) {
+            if (JSON.stringify(selectedAnswer.sort()) === JSON.stringify(correctAnswer.sort())) {
+                message.success("✅ Correct Answer!");
+                setPoints(prevPoints => prevPoints + 10);
+            } else {
+                message.error("❌ Wrong Answer!");
+            }
+        } else if (selectedAnswer === correctAnswer) {
             message.success("✅ Correct Answer!");
             setPoints(prevPoints => prevPoints + 10);
         } else {
@@ -81,117 +92,116 @@ const ResultsDisplay = () => {
         setInputValue("");
     };
 
-    return (
-        <div className="results-container">
-            <h1>Game Result</h1>
-            <p>{result ? `Result: ${result}` : 'Waiting for result...'}</p>
-            <p>Points: {points}</p>
-            <img 
-                src={boxImage} 
-                alt="Result Box" 
-                className={`result-image ${result === 'Result2' ? 'flip' : ''}`} 
-            />
+    const DragWord = ({ word }) => {
+        const [{ isDragging }, drag] = useDrag(() => ({
+            type: "WORD",
+            item: { word },
+            collect: (monitor) => ({
+                isDragging: !!monitor.isDragging(),
+            }),
+        }));
 
-            <div className="quiz-container">
-                {quiz && quiz.questions.length > 0 && currentQuestionIndex < quiz.questions.length ? (
-                    (() => {
-                        const currentQuestion = quiz.questions[currentQuestionIndex];
-                        return (
-                            <Card key={currentQuestionIndex} title={`Question ${currentQuestionIndex + 1} - ${currentQuestion.difficulty.toUpperCase()}`} style={{ width: 600, marginBottom: 20 }}>
-                                <p style={{ fontSize: "18px" }}>{currentQuestion.question}</p>
+        return (
+            <Button ref={drag} style={{ opacity: isDragging ? 0.5 : 1, margin: "5px" }}>
+                {word}
+            </Button>
+        );
+    };
 
-                                <Row gutter={16}>
-                                    {currentQuestion.type === "multiple_choice" ? (
-                                        currentQuestion.choices.map((choice, i) => (
-                                            <Col span={12} key={i}>
-                                                <Button
-                                                    type={selectedAnswers[currentQuestionIndex] === choice ? "primary" : "default"}
-                                                    block
-                                                    onClick={() => handleAnswerClick(choice)}
-                                                >
-                                                    {choice}
-                                                </Button>
-                                            </Col>
-                                        ))
-                                    ) : currentQuestion.type === "true_false" ? (
-                                        <>
-                                            <Col span={12}>
-                                                <Button
-                                                    type={selectedAnswers[currentQuestionIndex] === "true" ? "primary" : "default"}
-                                                    block
-                                                    onClick={() => handleAnswerClick("true")}
-                                                >
-                                                    True
-                                                </Button>
-                                            </Col>
-                                            <Col span={12}>
-                                                <Button
-                                                    type={selectedAnswers[currentQuestionIndex] === "false" ? "primary" : "default"}
-                                                    block
-                                                    onClick={() => handleAnswerClick("false")}
-                                                >
-                                                    False
-                                                </Button>
-                                            </Col>
-                                        </>
-                                    ) : currentQuestion.type === "fill_in_the_blank" ? (
-                                        <>
-                                            <Input 
-                                                placeholder="Type your answer..." 
-                                                value={inputValue} 
-                                                onChange={(e) => setInputValue(e.target.value)}
-                                                onPressEnter={handleInputSubmit}
-                                            />
-                                            <Button onClick={handleInputSubmit} style={{ marginTop: 10 }}>Submit</Button>
-                                        </>
-                                    ) : currentQuestion.type === "drag_and_drop" ? (
-                                        <>
-                                            <p>Drag and drop the correct words into the blanks:</p>
-                                            <Row gutter={16}>
-                                                {currentQuestion.choices.map((choice, i) => (
-                                                    <Col span={12} key={i}>
-                                                        <Button
-                                                            type={selectedAnswers[currentQuestionIndex] === choice ? "primary" : "default"}
-                                                            block
-                                                            onClick={() => handleAnswerClick(choice)}
-                                                        >
-                                                            {choice}
-                                                        </Button>
-                                                    </Col>
-                                                ))}
-                                            </Row>
-                                        </>
-                                    ) : currentQuestion.type === "matching" ? (
-                                        <>
-                                            <p>Match each term to its correct value:</p>
-                                            {Object.entries(currentQuestion.pairs).map(([key, value], i) => (
-                                                <Row key={i} gutter={16} style={{ marginBottom: 10 }}>
-                                                    <Col span={12}>
-                                                        <p>{key}</p>
-                                                    </Col>
-                                                    <Col span={12}>
-                                                        <Select 
-                                                            placeholder="Select a match"
-                                                            onChange={(val) => handleAnswerClick({ [key]: val })}
-                                                        >
-                                                            {Object.values(currentQuestion.pairs).map((option, index) => (
-                                                                <Option key={index} value={option}>{option}</Option>
-                                                            ))}
-                                                        </Select>
-                                                    </Col>
-                                                </Row>
-                                            ))}
-                                        </>
-                                    ) : null}
-                                </Row>
-                            </Card>
-                        );
-                    })()
-                ) : (
-                    <p>{quiz ? "Quiz completed! 🎉" : "Loading questions..."}</p>
-                )}
+    const DropBox = ({ onDrop }) => {
+        const [{ isOver }, drop] = useDrop(() => ({
+            accept: "WORD",
+            drop: (item) => onDrop(item.word),
+            collect: (monitor) => ({
+                isOver: !!monitor.isOver(),
+            }),
+        }));
+
+        return (
+            <div ref={drop} className={`drop-box ${isOver ? "hovered" : ""}`}>
+                {draggedWord || "Drop here"}
             </div>
-        </div>
+        );
+    };
+
+    return (
+        <DndProvider backend={HTML5Backend}>
+            <div className="results-container">
+                <h1>Game Result</h1>
+                <p>{result ? `Result: ${result}` : 'Waiting for result...'}</p>
+                <p>Points: {points}</p>
+                <img src={boxImage} alt="Result Box" className={`result-image ${result === 'Result2' ? 'flip' : ''}`} />
+
+                <div className="quiz-container">
+                    {quiz && quiz.questions.length > 0 && currentQuestionIndex < quiz.questions.length ? (
+                        (() => {
+                            const currentQuestion = quiz.questions[currentQuestionIndex];
+                            return (
+                                <Card key={currentQuestionIndex} title={`Question ${currentQuestionIndex + 1} - ${currentQuestion.difficulty.toUpperCase()}`} style={{ width: 600, marginBottom: 20 }}>
+                                    <p style={{ fontSize: "18px" }}>{currentQuestion.question}</p>
+
+                                    <Row gutter={16}>
+                                        {currentQuestion.type === "multiple_choice" ? (
+                                            currentQuestion.choices.map((choice, i) => (
+                                                <Col span={12} key={i}>
+                                                    <Button
+                                                        type={selectedAnswers[currentQuestionIndex] === choice ? "primary" : "default"}
+                                                        block
+                                                        onClick={() => handleAnswerClick(choice)}
+                                                    >
+                                                        {choice}
+                                                    </Button>
+                                                </Col>
+                                            ))
+                                        ) : currentQuestion.type === "true_false" ? (
+                                            <>
+                                                <Col span={12}>
+                                                    <Button block onClick={() => handleAnswerClick("true")}>
+                                                        True
+                                                    </Button>
+                                                </Col>
+                                                <Col span={12}>
+                                                    <Button block onClick={() => handleAnswerClick("false")}>
+                                                        False
+                                                    </Button>
+                                                </Col>
+                                            </>
+                                        ) : currentQuestion.type === "fill_in_the_blank" ? (
+                                            <>
+                                                <Input 
+                                                    placeholder="Type your answer..." 
+                                                    value={inputValue} 
+                                                    onChange={(e) => setInputValue(e.target.value)}
+                                                    onPressEnter={handleInputSubmit}
+                                                />
+                                                <Button onClick={handleInputSubmit} style={{ marginTop: 10 }}>Submit</Button>
+                                            </>
+                                        ) : currentQuestion.type === "drag_and_drop" ? (
+                                            <>
+                                                <p>Drag the correct words into the box:</p>
+                                                <Row gutter={16}>
+                                                    {currentQuestion.choices.map((choice, i) => (
+                                                        <Col span={6} key={i}>
+                                                            <DragWord word={choice} />
+                                                        </Col>
+                                                    ))}
+                                                </Row>
+                                                <DropBox onDrop={(word) => setDraggedWord(word)} />
+                                                <Button onClick={() => handleAnswerClick(draggedWord)}>Submit</Button>
+                                            </>
+                                        ) : currentQuestion.type === "multi_select" ? (
+                                            <Checkbox.Group options={currentQuestion.choices} onChange={setMultiSelectAnswers} />
+                                        ) : null}
+                                    </Row>
+                                </Card>
+                            );
+                        })()
+                    ) : (
+                        <p>{quiz ? "Quiz completed! 🎉" : "Loading questions..."}</p>
+                    )}
+                </div>
+            </div>
+        </DndProvider>
     );
 };
 

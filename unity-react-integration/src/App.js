@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { Layout } from "antd";
 import UnityGame from "./Components/UnityGame.js";
 import ResultDisplay from "./Components/ResultsDisplay.js";
@@ -9,11 +9,10 @@ import Navbar from "./Components/Navbar";
 import Leaderboard from "./Components/Leaderboard.js"; 
 import CreateQuiz from "./Components/CreateQuiz"; 
 
-
-
 const { Content } = Layout;
 
-const App = () => {
+const AppContent = () => {
+  const location = useLocation();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -23,29 +22,41 @@ const App = () => {
     }
   }, []);
 
-  return (
-    <Router>
-      <Layout>
-        <Navbar user={user} setUser={setUser} />
+  // Determine if Unity should be visible
+  const isGamePage = location.pathname === "/";
 
+  return (
+    <>
+      {/* Navbar always visible above the Unity canvas */}
+      <div className="navbar-wrapper">
+        <Navbar user={user} setUser={setUser} />
+      </div>
+
+      {/* Unity Game - stays mounted but toggles visibility */}
+      <div className="persistent-unity" style={{ display: isGamePage ? "block" : "none" }}>
+        <UnityGame />
+      </div>
+
+      {/* Page Content */}
+      <Layout>
         <Content style={{ padding: "50px", display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
           <Routes>
-          <Route 
-              path="/" 
-              element={
-                <div style={{ width: "100%", textAlign: "center" }}>
-                  <UnityGame />
-                  <ResultDisplay />
-                </div>
-              } />
-            <Route path="/" element={<ResultDisplay />} />
+            {/* <Route path="/" element={<ResultDisplay />} /> */}
             <Route path="/login" element={<Login setUser={setUser} />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/leaderboard" element={<Leaderboard />} /> 
-            <Route path="/create-quiz" element={<CreateQuiz />} /> 
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/create-quiz" element={<CreateQuiz />} />
           </Routes>
         </Content>
       </Layout>
+    </>
+  );
+};
+
+const App = () => {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 };
