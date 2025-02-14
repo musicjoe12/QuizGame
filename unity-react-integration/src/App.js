@@ -39,7 +39,7 @@ const AppContent = () => {
 
       {/* Page Content */}
       <Layout>
-        <Content style={{ padding: "50px", display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
+      <div className="app-content"> 
           <Routes>
             {/* <Route path="/" element={<ResultDisplay />} /> */}
             <Route path="/login" element={<Login setUser={setUser} />} />
@@ -47,7 +47,7 @@ const AppContent = () => {
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/create-quiz" element={<CreateQuiz />} />
           </Routes>
-        </Content>
+        </div>
       </Layout>
     </>
   );
