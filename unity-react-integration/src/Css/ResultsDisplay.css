@@ -1,6 +1,6 @@
 .results-container {
     position: absolute;
-    top: 0;
+    top: 100px; /* Adjust this value based on the height of your navbar */
     left: 0;
     width: 100%;
     z-index: 1000; 

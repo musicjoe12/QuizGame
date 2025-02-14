@@ -18,6 +18,8 @@ const ResultsDisplay = () => {
     const [inputValue, setInputValue] = useState("");
     const [draggedWord, setDraggedWord] = useState(null);
     const [multiSelectAnswers, setMultiSelectAnswers] = useState([]);
+    const [timeLeft, setTimeLeft] = useState(10);
+    const [questionVisible, setQuestionVisible] = useState(true);
 
     useEffect(() => {
         const eventSource = new EventSource('http://localhost:5000/api/result-stream');
@@ -35,9 +37,14 @@ const ResultsDisplay = () => {
             if (!quizLoaded) {
                 fetchQuiz("67a62bc5db2f59cfc4386b03");
                 setQuizLoaded(true);
-            } else {
-                setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+            } else if (quiz && quiz.questions.length > 0) {
+                setCurrentQuestionIndex(() => {
+                    const randomIndex = Math.floor(Math.random() * quiz.questions.length);
+                    return randomIndex;
+                });
             }
+            setTimeLeft(10);
+            setQuestionVisible(true);
         };
 
         eventSource.onerror = (error) => {
@@ -48,7 +55,16 @@ const ResultsDisplay = () => {
         return () => {
             eventSource.close();
         };
-    }, [quizLoaded]);
+    }, [quizLoaded, quiz]);
+
+    useEffect(() => {
+        if (timeLeft > 0 && questionVisible) {
+            const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+            return () => clearTimeout(timer);
+        } else if (timeLeft === 0) {
+            setQuestionVisible(false);
+        }
+    }, [timeLeft, questionVisible]);
 
     const fetchQuiz = async (quizId) => {
         try {
@@ -133,11 +149,16 @@ const ResultsDisplay = () => {
                 <img src={boxImage} alt="Result Box" className={`result-image ${result === 'Result2' ? 'flip' : ''}`} />
 
                 <div className="quiz-container">
-                    {quiz && quiz.questions.length > 0 && currentQuestionIndex < quiz.questions.length ? (
+                    {questionVisible && quiz && quiz.questions.length > 0 && currentQuestionIndex < quiz.questions.length ? (
                         (() => {
                             const currentQuestion = quiz.questions[currentQuestionIndex];
                             return (
-                                <Card key={currentQuestionIndex} title={`Question ${currentQuestionIndex + 1} - ${currentQuestion.difficulty.toUpperCase()}`} style={{ width: 600, marginBottom: 20 }}>
+                                <Card key={currentQuestionIndex} title={
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <span>Question {currentQuestionIndex + 1} - {currentQuestion.difficulty.toUpperCase()}</span>
+                                        <span>⏱️ {timeLeft}s</span>
+                                    </div>
+                                } style={{ width: 600, marginBottom: 20 }}>
                                     <p style={{ fontSize: "18px" }}>{currentQuestion.question}</p>
 
                                     <Row gutter={16}>
@@ -197,7 +218,7 @@ const ResultsDisplay = () => {
                             );
                         })()
                     ) : (
-                        <p>{quiz ? "Quiz completed! 🎉" : "Loading questions..."}</p>
+                        <p>{quiz ? "Waiting for next question..." : "Loading questions..."}</p>
                     )}
                 </div>
             </div>

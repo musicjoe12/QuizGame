@@ -27,7 +27,7 @@ const UnityGame = () => {
 
     return (
         <div
-            className="unity-persistent"
+            className="container"
             style={{
                 display: isGamePage ? "block" : "none"
             }}

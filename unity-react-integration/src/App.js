@@ -41,7 +41,7 @@ const AppContent = () => {
       <Layout>
       <div className="app-content"> 
           <Routes>
-            {/* <Route path="/" element={<ResultDisplay />} /> */}
+            <Route path="/" element={<ResultDisplay />} />
             <Route path="/login" element={<Login setUser={setUser} />} />
             <Route path="/register" element={<Register />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
