@@ -8,6 +8,8 @@ import twoBar from '../Images/2bar.png';
 import oneBar from '../Images/1bar.png';
 import fiveBar from '../Images/5bar.png';
 import tenBar from '../Images/10bar.png';
+import cointossBar from '../Images/cointossBar.png';
+import plinkoBar from '../Images/plinkoBar.png';
 
 const { Option } = Select;
 
@@ -154,6 +156,10 @@ const ResultsDisplay = () => {
                 <img src={twoBar} alt="Result Box" className={`result-image ${result === 'Result2' ? 'flip' : ''}`} />
                 <img src={fiveBar} alt="Result Box" className={`result-image ${result === 'Result5' ? 'flip' : ''}`} />
                 <img src={tenBar} alt="Result Box" className={`result-image ${result === 'Result10' ? 'flip' : ''}`} />
+                 </div>
+                 <div className="result-grid-bonus">
+                <img src={cointossBar} alt="Result Box" className={`result-image ${result === 'ResultCF' ? 'flip' : ''}`} />
+                <img src={plinkoBar} alt="Result Box" className={`result-image ${result === 'ResultPC' ? 'flip' : ''}`} />
                  </div>
 
 
