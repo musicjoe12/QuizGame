@@ -4,7 +4,10 @@ import { Card, Button, Row, Col, Input, Select, Checkbox, message } from 'antd';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import "../Css/ResultsDisplay.css";
-import boxImage from '../Images/no 2 box.png';
+import twoBar from '../Images/2bar.png';
+import oneBar from '../Images/1bar.png';
+import fiveBar from '../Images/5bar.png';
+import tenBar from '../Images/10bar.png';
 
 const { Option } = Select;
 
@@ -143,10 +146,17 @@ const ResultsDisplay = () => {
     return (
         <DndProvider backend={HTML5Backend}>
             <div className="results-container">
-                <h1>Game Result</h1>
+                
                 <p>{result ? `Result: ${result}` : 'Waiting for result...'}</p>
                 <p>Points: {points}</p>
-                <img src={boxImage} alt="Result Box" className={`result-image ${result === 'Result2' ? 'flip' : ''}`} />
+                <div className="result-grid">
+                <img src={oneBar} alt="Result Box" className={`result-image ${result === 'Result1' ? 'flip' : ''}`} />
+                <img src={twoBar} alt="Result Box" className={`result-image ${result === 'Result2' ? 'flip' : ''}`} />
+                <img src={fiveBar} alt="Result Box" className={`result-image ${result === 'Result5' ? 'flip' : ''}`} />
+                <img src={tenBar} alt="Result Box" className={`result-image ${result === 'Result10' ? 'flip' : ''}`} />
+                 </div>
+
+
 
                 <div className="quiz-container">
                     {questionVisible && quiz && quiz.questions.length > 0 && currentQuestionIndex < quiz.questions.length ? (
