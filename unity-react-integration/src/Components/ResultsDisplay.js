@@ -148,9 +148,9 @@ const ResultsDisplay = () => {
     return (
         <DndProvider backend={HTML5Backend}>
             <div className="results-container">
-                
-                <p>{result ? `Result: ${result}` : 'Waiting for result...'}</p>
+                <div className="points">
                 <p>Points: {points}</p>
+                </div>
                 <div className="result-grid">
                 <img src={oneBar} alt="Result Box" className={`result-image ${result === 'Result1' ? 'flip' : ''}`} />
                 <img src={twoBar} alt="Result Box" className={`result-image ${result === 'Result2' ? 'flip' : ''}`} />
