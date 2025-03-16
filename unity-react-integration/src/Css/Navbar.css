@@ -1,0 +1,32 @@
+/* Invisible hover area at the top */
+.navbar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 10px; /* Small hover trigger area */
+    z-index: 1003;
+  }
+  
+  /* Navbar starts off-screen */
+  .navbar {
+    position: fixed;
+    top: -60px; /* Move navbar completely off-screen */
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background-color: rgba(0, 0, 0, 0.9); /* Semi-transparent when shown */
+    color: white;
+    z-index: 1002;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    transition: top 0.3s ease-in-out; /* Smooth slide animation */
+  }
+  
+  /* Navbar appears when hovering over the trigger area */
+  .navbar-container:hover + .navbar,
+  .navbar:hover {
+    top: 0; /* Navbar slides down */
+  }
+  
