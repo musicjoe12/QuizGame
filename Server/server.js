@@ -5,7 +5,6 @@ const connectDB = require('./database');
 const userRoutes = require('./Routes/userRoutes');
 const quizRoutes = require('./routes/quizRoutes');
 require('dotenv').config({ path: './config.env' });
-
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -21,6 +20,8 @@ connectDB();
 // ✅ Store latest results
 let currentResult = null;
 let topSlotResult = null;
+let bonusStart = null; 
+let bonusResult = null;
 let clients = []; // Stores connected clients
 
 // ✅ Log Top Slot Results Before Wheel Lands
@@ -74,12 +75,13 @@ app.post('/api/bonus-result', (req, res) => {
     }
 
     console.log(`🎯 Bonus Completed: ${result}, Final Points: ${points}`);
-    
-    // ✅ Send update to clients
-    clients.forEach(client => client.write(`data: ${JSON.stringify({ bonus: { result, points } })}\n\n`));
 
     res.status(200).json({ message: 'Bonus result received' });
 });
+
+
+
+
 
 // ✅ SSE Endpoint for React to listen for updates
 app.get('/api/result-stream', (req, res) => {
@@ -89,19 +91,34 @@ app.get('/api/result-stream', (req, res) => {
 
     console.log('🔄 New client connected to result stream.');
 
-    // ✅ Send latest results if available
-    if (topSlotResult) res.write(`data: ${JSON.stringify({ topslot: topSlotResult })}\n\n`);
-    if (currentResult) res.write(`data: ${JSON.stringify({ wheel: currentResult })}\n\n`);
+    if (topSlotResult) {
+        console.log("📡 Sending Top Slot:", topSlotResult);
+        res.write(`data: ${JSON.stringify({ topslot: topSlotResult })}\n\n`);
+    }
+    if (currentResult) {
+        console.log("📡 Sending Wheel Result:", currentResult);
+        res.write(`data: ${JSON.stringify({ wheel: currentResult })}\n\n`);
+    }
+    if (bonusStart) { 
+        console.log("📡 Sending Bonus Start:", bonusStart);
+        res.write(`data: ${JSON.stringify({ bonusStart })}\n\n`);
+    }
+    if (bonusResult) { // ✅ Debug Bonus Result Before Sending
+        console.log("📡 Sending Bonus Result:", bonusResult);
+        res.write(`data: ${JSON.stringify({ bonus: bonusResult })}\n\n`);
+    } else {
+        console.log("⚠️ No Bonus Result Stored");
+    }
 
-    // ✅ Store the response object for future updates
     clients.push(res);
 
-    // ✅ Remove client on disconnect
     req.on('close', () => {
         console.log('❌ Client disconnected from result stream.');
         clients = clients.filter(client => client !== res);
     });
 });
+
+
 
 // ✅ Other API Routes
 app.use('/api/users', userRoutes);
@@ -115,22 +132,42 @@ app.post('/api/bonus-start', (req, res) => {
         return res.status(400).json({ message: 'Invalid bonus result' });
     }
 
-    console.log(`🎰 Bonus Game Started: ${result}`); // ✅ Debug Log in Server
+    console.log(`🎰 Bonus Game Started: ${result}`);
 
-    res.status(200).json({ message: 'Bonus game start received' });
+    // ✅ Store the bonus start event
+    bonusStart = { result, timestamp: Date.now() };
+
+    // ✅ Debugging: Confirm storage
+    console.log("📝 Stored Bonus Start:", bonusStart);
+
+    // ✅ Send to SSE clients
+    clients.forEach(client => client.write(`data: ${JSON.stringify({ bonusStart })}\n\n`));
+
+    res.status(200).json({ message: 'Bonus game start received & stored' });
 });
 // ✅ New Endpoint: Receive Final Bonus Points from Unity (Plinko & CoinToss)
 app.post('/api/bonus-points', (req, res) => {
     const { result, points } = req.body;
 
     if (!result || points === undefined) {
+        console.error('❌ Invalid bonus game result received:', req.body);
         return res.status(400).json({ message: 'Invalid bonus game result or points' });
     }
 
     console.log(`🔥 Bonus Completed: ${result}, Final Points: ${points}`); // ✅ Debug Log
 
-    res.status(200).json({ message: 'Bonus points received' });
+    // ✅ Store the bonus result globally
+    bonusResult = { result, points };
+
+    // ✅ Log stored bonus result to confirm
+    console.log("📝 Stored Bonus Result:", bonusResult);
+
+    // ✅ Send update to clients via SSE
+    clients.forEach(client => client.write(`data: ${JSON.stringify({ bonus: bonusResult })}\n\n`));
+
+    res.status(200).json({ message: 'Bonus points received & stored' });
 });
+
 
 
 // ✅ Start server
