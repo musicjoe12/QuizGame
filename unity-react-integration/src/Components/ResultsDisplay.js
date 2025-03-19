@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Card, Button, Row, Col, Input, message } from 'antd';
+import { Card, Button, Grid, TextField, Typography, Box } from '@mui/material';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import "../Css/ResultsDisplay.css";
@@ -21,16 +21,16 @@ const resultImages = {
     ResultPC: plinkoBar
 };
 
-// ✅ Define Main Wheel Results & Bonus Triggers
 const MAIN_WHEEL_RESULTS = ["Result1", "Result2", "Result5", "Result10"];
 const BONUS_GAMES = ["ResultPC", "ResultCF"];
-const BONUS_RESULTS = ["Plinko", "CoinToss"]; // These send final points
+const BONUS_RESULTS = ["Plinko", "CoinToss"];
 
 const ResultsDisplay = () => {
     const [result, setResult] = useState(null);
     const [points, setPoints] = useState(0);
     const [quiz, setQuiz] = useState(null);
     const [selectedAnswer, setSelectedAnswer] = useState(null);
+    const [inputAnswer, setInputAnswer] = useState("");
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [quizLoaded, setQuizLoaded] = useState(false);
     const [timeLeft, setTimeLeft] = useState(10);
@@ -47,7 +47,6 @@ const ResultsDisplay = () => {
                 const data = JSON.parse(event.data);
                 console.log('✅ New Result Received:', data);
 
-                // ✅ Extract data correctly
                 if (data.wheel) {
                     handleWheelResult(data.wheel);
                 }
@@ -91,153 +90,132 @@ const ResultsDisplay = () => {
         }
     };
 
-    // ✅ Handle Normal Wheel Results (1, 2, 5, 10)
     const handleWheelResult = (wheelData) => {
         const result = wheelData.result;
         const finalPoints = wheelData.finalPoints || 0;
-        console.log("🎡 Wheel Landed On:", result, "Final Points:", finalPoints);
-    
         if (!MAIN_WHEEL_RESULTS.includes(result)) return;
-    
         setResult(result);
         setPendingBonusPoints(finalPoints);
-    
-        // ✅ Ensure the quiz is loaded before showing the question
         if (!quizLoaded) {
-            console.log("📥 Loading Quiz...");
             fetchQuiz("67a62bc5db2f59cfc4386b03").then(() => {
                 setQuizLoaded(true);
-                console.log("✅ Quiz Loaded! Showing Question...");
                 showQuestion();
             });
         } else {
-            console.log("🔵 Quiz Already Loaded. Showing Question Now...");
             showQuestion();
         }
     };
-    
 
-    // ✅ Handle Bonus Start (Plinko, Coin Toss Starts)
     const handleBonusStart = (bonusStartData) => {
-        console.log("🎰 Bonus Game Started:", bonusStartData.result);
-
         if (!BONUS_GAMES.includes(bonusStartData.result)) return;
-
         setBonusActive(true);
         setPendingBonusPoints(0);
         setBonusQuestionAnsweredCorrectly(false);
-
-        // ✅ Show question before the bonus starts
         showQuestion();
-
-        // ✅ Hide question after 7 seconds when bonus starts
         setTimeout(() => {
             setQuestionVisible(false);
         }, 7000);
     };
 
-    // ✅ Handle Bonus Completion (Apply Points Only If Correct)
     const handleBonusResult = (bonusResultData) => {
-        console.log("🔥 Bonus Completed:", bonusResultData.result, "Points:", bonusResultData.points);
-
         if (!BONUS_RESULTS.includes(bonusResultData.result)) return;
-
+    
+        console.log("🔥 Bonus Completed:", bonusResultData.result, "Points:", bonusResultData.points);
+    
+        // ✅ Apply points ONLY if the player answered the question correctly
         if (bonusQuestionAnsweredCorrectly) {
             setPoints(prevPoints => prevPoints + bonusResultData.points);
             console.log("✅ Bonus Points Applied:", bonusResultData.points);
         } else {
             console.log("❌ Bonus Points NOT Applied: Question was incorrect");
         }
-
-        // ✅ Reset Bonus State
+    
+        // ✅ Reset Bonus State After Application
         setBonusActive(false);
-        setPendingBonusPoints(0);
+        setBonusQuestionAnsweredCorrectly(false);
     };
-
+    
     const showQuestion = () => {
-        if (!quiz) {
-            console.log("❌ No quiz available. Skipping question.");
-            return;
-        }
-    
-        if (quiz.questions.length > 0) {
-            const randomIndex = Math.floor(Math.random() * quiz.questions.length);
-            setCurrentQuestionIndex(randomIndex);
-            setQuestionVisible(true);
-            setTimeLeft(10);
-            console.log("📢 Showing Question:", quiz.questions[randomIndex].question);
-        } else {
-            console.log("❌ Quiz has no questions.");
-        }
+        if (!quiz || quiz.questions.length === 0) return;
+        const randomIndex = Math.floor(Math.random() * quiz.questions.length);
+        setCurrentQuestionIndex(randomIndex);
+        setQuestionVisible(true);
+        setTimeLeft(10);
     };
-    
 
     const handleAnswerClick = (selected) => {
         if (!quiz) return;
         const currentQuestion = quiz.questions[currentQuestionIndex];
         const correctAnswer = currentQuestion.correct_answer;
 
-        setSelectedAnswer(selected);
-
-        if (selected === correctAnswer) {
-            message.success("✅ Correct Answer!");
-
-            if (bonusActive) {
-                setBonusQuestionAnsweredCorrectly(true);
-            } else {
-                setPoints(prevPoints => prevPoints + pendingBonusPoints);
-            }
-        } else {
-            message.error("❌ Wrong Answer!");
+        if (selected.toLowerCase() === correctAnswer.toLowerCase()) {
+            setBonusQuestionAnsweredCorrectly(true);
+            setPoints(prevPoints => prevPoints + pendingBonusPoints);
         }
-
         setQuestionVisible(false);
+    };
+
+    const handleInputSubmit = () => {
+        handleAnswerClick(inputAnswer);
+        setInputAnswer("");
     };
 
     return (
         <DndProvider backend={HTML5Backend}>
-            <div className="results-container">
-                <div className="points">
-                    <p>Points: {points}</p>
-                </div>
+            <Box className="results-container">
+                <Typography variant="h5">Points: {points}</Typography>
 
-                <div className="result-grid">
-                    {Object.keys(resultImages).map((key) => (
-                        <img 
-                            key={key} 
-                            src={resultImages[key]} 
-                            alt={`Result ${key}`} 
-                            className={`result-image ${result === key ? 'flip' : ''}`} 
-                        />
-                    ))}
-                </div>
+                {questionVisible && quiz && quiz.questions.length > 0 && (
+                    <Card sx={{ width: 600, margin: "20px auto", padding: 3 }}>
+                        <Typography variant="h6">{quiz.questions[currentQuestionIndex].question}</Typography>
+                        <Grid container spacing={2} sx={{ marginTop: 2 }}>
+                            {quiz.questions[currentQuestionIndex].type === "multiple_choice" && (
+                                quiz.questions[currentQuestionIndex].choices.map((choice, i) => (
+                                    <Grid item xs={6} key={i}>
+                                        <Button fullWidth variant="contained" onClick={() => handleAnswerClick(choice)}>
+                                            {choice}
+                                        </Button>
+                                    </Grid>
+                                ))
+                            )}
 
-                {questionVisible && quiz && quiz.questions.length > 0 ? (
-                    (() => {
-                        const currentQuestion = quiz.questions[currentQuestionIndex];
-                        return (
-                            <Card key={currentQuestionIndex} title={`Question - ${currentQuestion.difficulty.toUpperCase()}`} style={{ width: 600, marginBottom: 20 }}>
-                                <p style={{ fontSize: "18px" }}>{currentQuestion.question}</p>
-                                <Row gutter={16}>
-                                    {currentQuestion.choices.map((choice, i) => (
-                                        <Col span={12} key={i}>
-                                            <Button
-                                                type={selectedAnswer === choice ? "primary" : "default"}
-                                                block
-                                                onClick={() => handleAnswerClick(choice)}
-                                            >
-                                                {choice}
-                                            </Button>
-                                        </Col>
-                                    ))}
-                                </Row>
-                            </Card>
-                        );
-                    })()
-                ) : (
-                    <p>{quiz ? "Waiting for next question..." : "Loading questions..."}</p>
+                            {quiz.questions[currentQuestionIndex].type === "true_false" && (
+                                <>
+                                    <Grid item xs={6}>
+                                        <Button fullWidth variant="contained" color="success" onClick={() => handleAnswerClick("true")}>
+                                            True
+                                        </Button>
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                        <Button fullWidth variant="contained" color="error" onClick={() => handleAnswerClick("false")}>
+                                            False
+                                        </Button>
+                                    </Grid>
+                                </>
+                            )}
+
+                            {quiz.questions[currentQuestionIndex].type === "fill_in_the_blank" && (
+                                <>
+                                    <Grid item xs={12}>
+                                        <TextField
+                                            fullWidth
+                                            label="Type your answer"
+                                            value={inputAnswer}
+                                            onChange={(e) => setInputAnswer(e.target.value)}
+                                            onKeyDown={(e) => e.key === "Enter" && handleInputSubmit()}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <Button fullWidth variant="contained" onClick={handleInputSubmit}>
+                                            Submit
+                                        </Button>
+                                    </Grid>
+                                </>
+                            )}
+                        </Grid>
+                    </Card>
                 )}
-            </div>
+            </Box>
         </DndProvider>
     );
 };
