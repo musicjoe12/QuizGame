@@ -54,24 +54,28 @@ exports.loginUser = async (req, res) => {
         );
 
 
-        res.json({ message: "✅ Login successful!", token, username: user.username, role: user.role });
-
+        res.json({
+            message: "✅ Login successful!",
+            token,
+            username: user.username,
+            role: user.role,
+            userId: user._id 
+            points: user.points 
+          });
+          
     } catch (error) {
         console.error("❌ Server Error in loginUser:", error);
         res.status(500).json({ message: "❌ Server error", error });
     }
 };
 
-
-
-
 exports.updatePoints = async (req, res) => {
     try {
-        const { username, points } = req.body;
+        const { userId, points } = req.body;
 
-        const user = await User.findOneAndUpdate(
-            { username },
-            { $inc: { points: points } }, // Increment points
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { $inc: { points: points } }, // ✅ increment points
             { new: true }
         );
 
@@ -82,6 +86,7 @@ exports.updatePoints = async (req, res) => {
         res.status(500).json({ message: "❌ Error updating points", error });
     }
 };
+
 exports.getLeaderboard = async (req, res) => {
     try {
         const users = await User.find().sort({ points: -1 }).select("username points"); // ✅ Sort by points (highest first)

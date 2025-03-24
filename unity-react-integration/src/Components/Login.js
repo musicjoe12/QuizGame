@@ -20,10 +20,11 @@ const Login = ({ setUser }) => {
         message.success("✅ Login successful!");
 
         // Store items
+        localStorage.setItem("userId", response.data.userId);
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("username", response.data.username);
         localStorage.setItem("role", response.data.role); // ✅ Store role
-
+        localStorage.setItem("points", response.data.points);
         setUser(response.data.username);
         navigate("/");
       })

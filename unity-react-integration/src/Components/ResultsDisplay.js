@@ -11,7 +11,7 @@ const MAIN_WHEEL_RESULTS = ["Result1", "Result2", "Result5", "Result10", "CoinTo
 
 const ResultsDisplay = () => {
     const [result, setResult] = useState(null);
-    const [points, setPoints] = useState(0);
+    const [points, setPoints] = useState(Number(localStorage.getItem("points")) || 0);
     const [quiz, setQuiz] = useState(null);
     const [selectedAnswer, setSelectedAnswer] = useState(null);
     const [inputAnswer, setInputAnswer] = useState("");
@@ -21,6 +21,7 @@ const ResultsDisplay = () => {
     const [questionVisible, setQuestionVisible] = useState(false);
     const [pendingBonusPoints, setPendingBonusPoints] = useState(0);
     const [topSlotResult, setTopSlotResult] = useState(null);
+    
 
     useEffect(() => {
         const eventSource = new EventSource('http://localhost:5000/api/result-stream');
@@ -98,21 +99,43 @@ const ResultsDisplay = () => {
         setTimeLeft(10);
     };
 
-    const handleAnswerClick = (selected) => {
+    const handleAnswerClick = async (selected) => {
         if (!quiz) return;
         const currentQuestion = quiz.questions[currentQuestionIndex];
         const correctAnswer = currentQuestion.correct_answer;
-
-        if (selected.toLowerCase() === correctAnswer.toLowerCase()) {
-            setPoints(prevPoints => prevPoints + pendingBonusPoints);
-            console.log("✅ Correct! Points awarded:", pendingBonusPoints);
+        const isCorrect = selected.toLowerCase() === correctAnswer.toLowerCase();
+    
+        if (isCorrect) {
+            const pointsToAdd = pendingBonusPoints;
+            setPoints(prev => {
+                const newPoints = prev + pointsToAdd;
+                localStorage.setItem("points", newPoints); // ✅ Keep it in sync
+                return newPoints;
+              });
+              
+            console.log("✅ Correct! Points awarded:", pointsToAdd);
+    
+            // ✅ If user is logged in, update backend
+            const userId = localStorage.getItem("userId");
+            if (userId) {
+                try {
+                    await axios.put("http://localhost:5000/api/users/update-points", {
+                        userId,
+                        points: pointsToAdd
+                    });
+                    console.log("📤 Points updated in backend.");
+                } catch (err) {
+                    console.error("❌ Failed to update user points:", err);
+                }
+            }
         } else {
             console.log("❌ Incorrect answer.");
         }
-
+    
         setQuestionVisible(false);
-        setPendingBonusPoints(0); // Reset after answer
+        setPendingBonusPoints(0); // reset
     };
+    
 
     const handleInputSubmit = () => {
         handleAnswerClick(inputAnswer);
@@ -127,7 +150,9 @@ const ResultsDisplay = () => {
     return (
         <DndProvider backend={HTML5Backend}>
             <Box className="results-container">
-                <Typography variant="h5">Points: {points}</Typography>
+            <Typography variant="h5">
+                Points: {points} {localStorage.getItem("username") && `(Logged in as: ${localStorage.getItem("username")})`}
+                </Typography>
                 <TopslotIndicators result={normalizeResultKey(result)} topSlot={topSlotResult} />
                 {questionVisible && quiz && quiz.questions.length > 0 && (
                     <Card sx={{ width: 600, margin: "20px auto", padding: 3 }}>
