@@ -18,50 +18,48 @@ const ResultHistory = () => {
 
     useEffect(() => {
         const eventSource = new EventSource('http://localhost:5000/api/result-stream');
-
+    
         eventSource.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-                const rawResult = data.result;
-
-                // Extract the numeric part from the result (e.g., "Result2" -> "2")
-                const match = rawResult.match(/\d+/);
-                if (match) {
+                console.log("📡 SSE Received:", data);
+    
+                // Only process if this message has a wheel result
+                if (data.wheel && data.wheel.result) {
+                    const rawResult = data.wheel.result;
+    
+                    const match = rawResult.match(/\d+/); // Match number in "Result5"
+                    if (!match) return;
+    
                     const numericResult = parseInt(match[0], 10);
-                    if (resultImages[numericResult]) {
-                        setResults((prev) => {
-                            const newResults = [...prev];
-                            newResults.pop();
-                            newResults.unshift(numericResult);
-                            return newResults;
-                        });
-                    } else {
-                        console.warn(`⚠️ No image found for result: ${numericResult}`);
-                    }
-                } else {
-                    console.warn(`⚠️ Unexpected result format: ${rawResult}`);
+                    if (!resultImages[numericResult]) return;
+    
+                    setResults((prev) => {
+                        const newResults = [numericResult, ...prev];
+                        return newResults.slice(0, 18); // Keep latest 18
+                    });
                 }
             } catch (error) {
                 console.error('❌ Failed to parse SSE result:', error);
             }
         };
-
+    
         eventSource.onerror = (error) => {
             console.error('❌ SSE Connection Error:', error);
             eventSource.close();
         };
-
+    
         return () => eventSource.close();
     }, []);
 
     return (
         <div className="result-history-grid">
-            {results.map((result, index) => (
-                <div key={index} className="result-item">
-                    {result !== null ? (
-                        <img src={resultImages[result]} alt={`Result ${result}`} />
+            {results.map((res, i) => (
+                <div key={i} className="result-item">
+                    {res ? (
+                        <img src={resultImages[res]} alt={`Result ${res}`} />
                     ) : (
-                        <div className="placeholder"></div>
+                        <div className="placeholder" />
                     )}
                 </div>
             ))}

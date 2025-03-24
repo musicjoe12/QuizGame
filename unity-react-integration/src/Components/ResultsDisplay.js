@@ -20,6 +20,7 @@ const ResultsDisplay = () => {
     const [timeLeft, setTimeLeft] = useState(10);
     const [questionVisible, setQuestionVisible] = useState(false);
     const [pendingBonusPoints, setPendingBonusPoints] = useState(0);
+    const [topSlotResult, setTopSlotResult] = useState(null);
 
     useEffect(() => {
         const eventSource = new EventSource('http://localhost:5000/api/result-stream');
@@ -31,6 +32,9 @@ const ResultsDisplay = () => {
 
                 if (data.wheel) {
                     handleWheelResult(data.wheel);
+                }
+                if (data.topslot) {
+                    setTopSlotResult(data.topslot); 
                 }
             } catch (error) {
                 console.error('❌ Failed to parse SSE result:', error);
@@ -114,12 +118,17 @@ const ResultsDisplay = () => {
         handleAnswerClick(inputAnswer);
         setInputAnswer("");
     };
-
+    const normalizeResultKey = (result) => {
+        if (result === "Plinko") return "ResultPC";
+        if (result === "CoinToss") return "ResultCF";
+        return result;
+    };
+    
     return (
         <DndProvider backend={HTML5Backend}>
             <Box className="results-container">
                 <Typography variant="h5">Points: {points}</Typography>
-                <TopslotIndicators result={result} />
+                <TopslotIndicators result={normalizeResultKey(result)} topSlot={topSlotResult} />
                 {questionVisible && quiz && quiz.questions.length > 0 && (
                     <Card sx={{ width: 600, margin: "20px auto", padding: 3 }}>
                         <Typography variant="h6">{quiz.questions[currentQuestionIndex].question}</Typography>

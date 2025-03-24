@@ -1,11 +1,11 @@
 .indicator-wrapper {
     position: fixed;
-    bottom: 5px;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 250px;
+    right: 25px;
     display: flex;
+    flex-direction: column;
     gap: 20px;
-    z-index: 1000;
+    z-index: 10000;
 }
 
 /* Numbers Grid: 2x2 */
@@ -23,8 +23,8 @@
 /* Bonus Grid: 1x2 */
 .bonus-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: 1fr;
     gap: 10px;
     padding: 10px;
     background: rgba(0, 0, 0, 0.7);
@@ -33,7 +33,7 @@
 }
 
 .result-image {
-    width: 300px;
+    width: 200px;
     height: 100px;
     transition: transform 0.5s;
 }
@@ -51,5 +51,29 @@
     }
     100% {
         transform: rotateY(0deg);
+    }
+}
+
+.result-box {
+    position: relative;
+}
+
+.topslot-overlay {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 45px;
+    height: auto;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.7);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
     }
 }
