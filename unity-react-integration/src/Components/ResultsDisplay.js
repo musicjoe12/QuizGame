@@ -4,26 +4,10 @@ import { Card, Button, Grid, TextField, Typography, Box } from '@mui/material';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import "../Css/ResultsDisplay.css";
+import TopslotIndicators from './TopslotIndicators'; // at the top
 
-import twoBar from '../Images/2bar.png';
-import oneBar from '../Images/1bar.png';
-import fiveBar from '../Images/5bar.png';
-import tenBar from '../Images/10bar.png';
-import cointossBar from '../Images/cointossBar.png';
-import plinkoBar from '../Images/plinkoBar.png';
 
-const resultImages = {
-    Result1: oneBar,
-    Result2: twoBar,
-    Result5: fiveBar,
-    Result10: tenBar,
-    ResultCF: cointossBar,
-    ResultPC: plinkoBar
-};
-
-const MAIN_WHEEL_RESULTS = ["Result1", "Result2", "Result5", "Result10"];
-const BONUS_GAMES = ["ResultPC", "ResultCF"];
-const BONUS_RESULTS = ["Plinko", "CoinToss"];
+const MAIN_WHEEL_RESULTS = ["Result1", "Result2", "Result5", "Result10", "CoinToss", "Plinko"];
 
 const ResultsDisplay = () => {
     const [result, setResult] = useState(null);
@@ -35,9 +19,7 @@ const ResultsDisplay = () => {
     const [quizLoaded, setQuizLoaded] = useState(false);
     const [timeLeft, setTimeLeft] = useState(10);
     const [questionVisible, setQuestionVisible] = useState(false);
-    const [bonusActive, setBonusActive] = useState(false);
     const [pendingBonusPoints, setPendingBonusPoints] = useState(0);
-    const [bonusQuestionAnsweredCorrectly, setBonusQuestionAnsweredCorrectly] = useState(false);
 
     useEffect(() => {
         const eventSource = new EventSource('http://localhost:5000/api/result-stream');
@@ -50,12 +32,6 @@ const ResultsDisplay = () => {
                 if (data.wheel) {
                     handleWheelResult(data.wheel);
                 }
-                if (data.bonusStart) {
-                    handleBonusStart(data.bonusStart);
-                }
-                if (data.bonus) {
-                    handleBonusResult(data.bonus);
-                }
             } catch (error) {
                 console.error('❌ Failed to parse SSE result:', error);
             }
@@ -67,7 +43,7 @@ const ResultsDisplay = () => {
         };
 
         return () => eventSource.close();
-    }, [quizLoaded, bonusActive]);
+    }, [quizLoaded]);
 
     useEffect(() => {
         if (timeLeft > 0 && questionVisible) {
@@ -94,8 +70,12 @@ const ResultsDisplay = () => {
         const result = wheelData.result;
         const finalPoints = wheelData.finalPoints || 0;
         if (!MAIN_WHEEL_RESULTS.includes(result)) return;
+
+        console.log("🎡 New Result:", result, "Points:", finalPoints);
+
         setResult(result);
         setPendingBonusPoints(finalPoints);
+
         if (!quizLoaded) {
             fetchQuiz("67a62bc5db2f59cfc4386b03").then(() => {
                 setQuizLoaded(true);
@@ -106,35 +86,6 @@ const ResultsDisplay = () => {
         }
     };
 
-    const handleBonusStart = (bonusStartData) => {
-        if (!BONUS_GAMES.includes(bonusStartData.result)) return;
-        setBonusActive(true);
-        setPendingBonusPoints(0);
-        setBonusQuestionAnsweredCorrectly(false);
-        showQuestion();
-        setTimeout(() => {
-            setQuestionVisible(false);
-        }, 7000);
-    };
-
-    const handleBonusResult = (bonusResultData) => {
-        if (!BONUS_RESULTS.includes(bonusResultData.result)) return;
-    
-        console.log("🔥 Bonus Completed:", bonusResultData.result, "Points:", bonusResultData.points);
-    
-        // ✅ Apply points ONLY if the player answered the question correctly
-        if (bonusQuestionAnsweredCorrectly) {
-            setPoints(prevPoints => prevPoints + bonusResultData.points);
-            console.log("✅ Bonus Points Applied:", bonusResultData.points);
-        } else {
-            console.log("❌ Bonus Points NOT Applied: Question was incorrect");
-        }
-    
-        // ✅ Reset Bonus State After Application
-        setBonusActive(false);
-        setBonusQuestionAnsweredCorrectly(false);
-    };
-    
     const showQuestion = () => {
         if (!quiz || quiz.questions.length === 0) return;
         const randomIndex = Math.floor(Math.random() * quiz.questions.length);
@@ -149,10 +100,14 @@ const ResultsDisplay = () => {
         const correctAnswer = currentQuestion.correct_answer;
 
         if (selected.toLowerCase() === correctAnswer.toLowerCase()) {
-            setBonusQuestionAnsweredCorrectly(true);
             setPoints(prevPoints => prevPoints + pendingBonusPoints);
+            console.log("✅ Correct! Points awarded:", pendingBonusPoints);
+        } else {
+            console.log("❌ Incorrect answer.");
         }
+
         setQuestionVisible(false);
+        setPendingBonusPoints(0); // Reset after answer
     };
 
     const handleInputSubmit = () => {
@@ -164,7 +119,7 @@ const ResultsDisplay = () => {
         <DndProvider backend={HTML5Backend}>
             <Box className="results-container">
                 <Typography variant="h5">Points: {points}</Typography>
-
+                <TopslotIndicators result={result} />
                 {questionVisible && quiz && quiz.questions.length > 0 && (
                     <Card sx={{ width: 600, margin: "20px auto", padding: 3 }}>
                         <Typography variant="h6">{quiz.questions[currentQuestionIndex].question}</Typography>
