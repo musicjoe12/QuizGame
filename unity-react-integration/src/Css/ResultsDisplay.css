@@ -98,3 +98,29 @@
         transform: rotateY(0deg);
     }
 }
+
+.user-points-box {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 14px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    font-family: 'Poppins', sans-serif;
+    min-width: 220px;
+  }
+  
+  .points-label {
+    font-weight: bold;
+    color: #ffd700; /* gold-like for points */
+  }
+  
+  .username-label {
+    color: #ccc;
+    margin-top: 4px;
+    font-size: 0.85rem;
+  }
+  

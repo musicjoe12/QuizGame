@@ -150,9 +150,17 @@ const ResultsDisplay = () => {
     return (
         <DndProvider backend={HTML5Backend}>
             <Box className="results-container">
-            <Typography variant="h5">
-                Points: {points} {localStorage.getItem("username") && `(Logged in as: ${localStorage.getItem("username")})`}
-                </Typography>
+                    <Box className="user-points-box">
+                    <Typography variant="h6" className="points-label">
+                        🪙 Points: {points}
+                    </Typography>
+                    {localStorage.getItem("username") && (
+                        <Typography variant="subtitle2" className="username-label">
+                        👤 Logged in as: {localStorage.getItem("username")}
+                        </Typography>
+                    )}
+                    </Box>
+
                 <TopslotIndicators result={normalizeResultKey(result)} topSlot={topSlotResult} />
                 {questionVisible && quiz && quiz.questions.length > 0 && (
                     <Card sx={{ width: 600, margin: "20px auto", padding: 3 }}>

@@ -59,7 +59,7 @@ exports.loginUser = async (req, res) => {
             token,
             username: user.username,
             role: user.role,
-            userId: user._id 
+            userId: user._id, 
             points: user.points 
           });
           

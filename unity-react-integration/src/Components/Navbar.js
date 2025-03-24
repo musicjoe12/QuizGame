@@ -27,6 +27,9 @@ const Navbar = ({ user, setUser }) => {
           <Menu.Item key="home">
             <Link to="/">🏠 Home</Link>
           </Menu.Item>
+          <Menu.Item key="leaderboard">
+                <Link to="/leaderboard">🏆 Leaderboard</Link>
+            </Menu.Item>
           {!user && (
             <>
               <Menu.Item key="login">
@@ -35,9 +38,7 @@ const Navbar = ({ user, setUser }) => {
               <Menu.Item key="register">
                 <Link to="/register">📝 Register</Link>
               </Menu.Item>
-              <Menu.Item key="leaderboard">
-                <Link to="/leaderboard">🏆 Leaderboard</Link>
-              </Menu.Item>
+              
             </>
           )}
           {user && role === "Staff" && (
