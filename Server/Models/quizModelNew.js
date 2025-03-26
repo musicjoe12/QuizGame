@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 // ✅ Define schema for individual questions
 const QuestionSchema = new mongoose.Schema({
     question: { type: String, required: true },
-    type: { type: String, enum: ["multiple_choice", "true_false"], required: true },
+    type: { type: String, enum: ["multiple_choice", "true_false", "fill_in_the_blank"], required: true },
     difficulty: { type: String, enum: ["easy", "medium", "hard"], required: true },
     choices: [{ type: String }], // Only used for multiple-choice questions
     correct_answer: { type: String, required: true }

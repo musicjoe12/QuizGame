@@ -7,7 +7,7 @@ const { Header } = Layout;
 
 const Navbar = ({ user, setUser }) => {
   const navigate = useNavigate();
-  const [role, setRole] = useState(localStorage.getItem("role"));
+  const role = localStorage.getItem("role"); // 👈 Updated to always read fresh
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -16,21 +16,20 @@ const Navbar = ({ user, setUser }) => {
     localStorage.removeItem("userId");
     localStorage.removeItem("points");
     setUser(null);
-    setRole(null);
     navigate("/login");
   };
 
   return (
     <>
-      <div className="navbar-container"></div> {/* Invisible hover trigger */}
+      <div className="navbar-container"></div>
       <Header className="navbar">
         <Menu mode="horizontal" theme="dark" style={{ flex: 1 }} defaultSelectedKeys={["home"]}>
           <Menu.Item key="home">
             <Link to="/">🏠 Home</Link>
           </Menu.Item>
           <Menu.Item key="leaderboard">
-                <Link to="/leaderboard">🏆 Leaderboard</Link>
-            </Menu.Item>
+            <Link to="/leaderboard">🏆 Leaderboard</Link>
+          </Menu.Item>
           {!user && (
             <>
               <Menu.Item key="login">
@@ -39,12 +38,11 @@ const Navbar = ({ user, setUser }) => {
               <Menu.Item key="register">
                 <Link to="/register">📝 Register</Link>
               </Menu.Item>
-              
             </>
           )}
           {user && role === "Staff" && (
             <Menu.Item key="createQuiz">
-              <Link to="/create-quiz">📝 Create Quiz</Link>
+              <Link to="/create-quiz">🛠️ Create Quiz</Link>
             </Menu.Item>
           )}
         </Menu>
@@ -61,5 +59,6 @@ const Navbar = ({ user, setUser }) => {
     </>
   );
 };
+
 
 export default Navbar;

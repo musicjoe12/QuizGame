@@ -92,6 +92,7 @@ app.get('/api/result-stream', (req, res) => {
 // ✅ Other API Routes
 app.use('/api/users', userRoutes);
 app.use('/api', quizRoutes);
+app.use("/api", require("./Routes/quizRoutes"));
 
 // ✅ Start server
 app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
