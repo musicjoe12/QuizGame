@@ -50,16 +50,19 @@ app.post('/api/result', (req, res) => {
         return res.status(400).json({ message: 'Invalid result or missing points' });
     }
 
+    const timestamp = Date.now(); // ✅ Add a timestamp
+
     console.log(`✅ Result Received: ${result}, Top Slot Multiplier: ${topSlotMultiplier}x, Final Points: ${finalPoints}`);
 
-    // ✅ Store as the latest result (Handles BOTH regular and bonus results)
-    currentResult = { result, topSlotMultiplier, finalPoints };
+    // ✅ Store with timestamp
+    currentResult = { result, topSlotMultiplier, finalPoints, timestamp };
 
     // ✅ Send update to clients
     clients.forEach(client => client.write(`data: ${JSON.stringify({ wheel: currentResult })}\n\n`));
 
     res.status(200).json({ message: 'Result received' });
 });
+
 
 // ✅ SSE Endpoint for React to listen for updates
 app.get('/api/result-stream', (req, res) => {

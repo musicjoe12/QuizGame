@@ -14,6 +14,7 @@ const Navbar = ({ user, setUser }) => {
     localStorage.removeItem("username");
     localStorage.removeItem("role");
     localStorage.removeItem("userId");
+    localStorage.removeItem("points");
     setUser(null);
     setRole(null);
     navigate("/login");

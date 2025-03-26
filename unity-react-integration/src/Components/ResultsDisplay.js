@@ -11,8 +11,10 @@ const MAIN_WHEEL_RESULTS = ["Result1", "Result2", "Result5", "Result10", "CoinTo
 
 const ResultsDisplay = () => {
     const [result, setResult] = useState(null);
-    const [points, setPoints] = useState(Number(localStorage.getItem("points")) || 0);
-    const [quiz, setQuiz] = useState(null);
+    const [points, setPoints] = useState(() => {
+        const isLoggedIn = localStorage.getItem("userId");
+        return isLoggedIn ? Number(localStorage.getItem("points")) || 0 : 0;
+    });    const [quiz, setQuiz] = useState(null);
     const [selectedAnswer, setSelectedAnswer] = useState(null);
     const [inputAnswer, setInputAnswer] = useState("");
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -21,7 +23,8 @@ const ResultsDisplay = () => {
     const [questionVisible, setQuestionVisible] = useState(false);
     const [pendingBonusPoints, setPendingBonusPoints] = useState(0);
     const [topSlotResult, setTopSlotResult] = useState(null);
-    
+    const [lastResultTimestamp, setLastResultTimestamp] = useState(null);
+
 
     useEffect(() => {
         const eventSource = new EventSource('http://localhost:5000/api/result-stream');
@@ -74,13 +77,22 @@ const ResultsDisplay = () => {
     const handleWheelResult = (wheelData) => {
         const result = wheelData.result;
         const finalPoints = wheelData.finalPoints || 0;
+        const timestamp = wheelData.timestamp;
+    
         if (!MAIN_WHEEL_RESULTS.includes(result)) return;
-
+    
+        // ✅ Skip if we've already handled this result
+        if (timestamp === lastResultTimestamp) {
+            console.log("⚠️ Duplicate result ignored.");
+            return;
+        }
+    
         console.log("🎡 New Result:", result, "Points:", finalPoints);
-
+    
         setResult(result);
         setPendingBonusPoints(finalPoints);
-
+        setLastResultTimestamp(timestamp); // ✅ Store latest timestamp
+    
         if (!quizLoaded) {
             fetchQuiz("67a62bc5db2f59cfc4386b03").then(() => {
                 setQuizLoaded(true);
