@@ -10,10 +10,12 @@ import {
   Space,
   Row,
   Col,
+  InputNumber
 } from "antd";
 import {
   PlusOutlined,
   MinusCircleOutlined,
+  RobotOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import "../Css/CreateQuiz.css"; // ⬅️ CSS file that controls scroll & layout
@@ -27,6 +29,13 @@ const CreateQuiz = () => {
   const [editingQuizId, setEditingQuizId] = useState(null);
   const [quizzes, setQuizzes] = useState([]);
   const [questionEditIndex, setQuestionEditIndex] = useState(null);
+  const [aiTopic, setAiTopic] = useState("");
+const [loadingAI, setLoadingAI] = useState(false);
+const [aiQuestionCount, setAiQuestionCount] = useState(5); 
+const [aiForm] = Form.useForm();
+const [aiLoading, setAiLoading] = useState(false);
+
+
 
   useEffect(() => {
     fetchQuizzes();
@@ -110,6 +119,30 @@ const CreateQuiz = () => {
       message.error("❌ Could not delete quiz");
     }
   };
+  const handleAIGenerate = async (values) => {
+    const { topic, count } = values;
+    setAiLoading(true);
+  
+    try {
+      const res = await axios.post("http://localhost:5000/api/ai/generate-questions", {
+        topic,
+        count,
+      });
+  
+      const generated = res.data;
+  
+      setQuestions((prev) => [...prev, ...generated]); // assuming setQuestions exists
+      message.success("✅ Questions generated!");
+      aiForm.resetFields();
+    } catch (err) {
+      console.error("❌ AI generation failed", err);
+      message.error("❌ Failed to generate questions.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+  
+  
 
   return (
     <div className="create-quiz-page-wrapper">
@@ -159,6 +192,48 @@ const CreateQuiz = () => {
           </Row>
         )}
       </Card>
+      <Card
+  title="🤖 Generate Questions with AI"
+  style={{ marginBottom: 24 }}
+>
+  <Form
+    layout="inline"
+    form={aiForm}
+    onFinish={handleAIGenerate}
+    style={{ flexWrap: "wrap", gap: 12 }}
+  >
+    <Form.Item
+      name="topic"
+      rules={[{ required: true, message: "Topic required" }]}
+    >
+      <Input
+        placeholder="e.g. Space, Biology, History..."
+        style={{ minWidth: 250 }}
+      />
+    </Form.Item>
+
+    <Form.Item
+      name="count"
+      initialValue={3}
+      rules={[{ required: true }]}
+    >
+      <InputNumber min={1} max={10} style={{ width: 80 }} />
+    </Form.Item>
+
+    <Form.Item>
+      <Button
+        type="primary"
+        htmlType="submit"
+        loading={aiLoading}
+        icon={<PlusOutlined />}
+      >
+        Generate
+      </Button>
+    </Form.Item>
+  </Form>
+</Card>
+
+
 
       <div className="create-quiz-layout">
         {/* Quiz Info */}

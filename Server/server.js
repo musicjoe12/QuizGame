@@ -5,6 +5,8 @@ const connectDB = require('./database');
 const userRoutes = require('./Routes/userRoutes');
 const quizRoutes = require('./routes/quizRoutes');
 require('dotenv').config({ path: './config.env' });
+const openAIRoutes = require('./Routes/openAIRoutes');
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -93,6 +95,8 @@ app.get('/api/result-stream', (req, res) => {
 app.use('/api/users', userRoutes);
 app.use('/api', quizRoutes);
 app.use("/api", require("./Routes/quizRoutes"));
+app.use('/api', require('./Routes/openAIRoutes'));
+app.use('/api', openAIRoutes);
 
 // ✅ Start server
 app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
