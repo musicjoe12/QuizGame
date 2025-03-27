@@ -10,7 +10,8 @@ import {
   Space,
   Row,
   Col,
-  InputNumber
+  InputNumber,
+  Pagination,
 } from "antd";
 import {
   PlusOutlined,
@@ -34,6 +35,10 @@ const [loadingAI, setLoadingAI] = useState(false);
 const [aiQuestionCount, setAiQuestionCount] = useState(5); 
 const [aiForm] = Form.useForm();
 const [aiLoading, setAiLoading] = useState(false);
+const [searchTerm, setSearchTerm] = useState("");
+const [currentPage, setCurrentPage] = useState(1);
+const pageSize = 4;
+
 
 
 
@@ -141,57 +146,87 @@ const [aiLoading, setAiLoading] = useState(false);
       setAiLoading(false);
     }
   };
-  
+  const filteredQuizzes = quizzes.filter((q) =>
+  q.quizname.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
+const paginatedQuizzes = filteredQuizzes.slice(
+  (currentPage - 1) * pageSize,
+  currentPage * pageSize
+);
+
   
 
   return (
     <div className="create-quiz-page-wrapper">
       <Card
-        title={
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span>📚 Existing Quizzes</span>
-            {editingQuizId && (
-              <Button
-                type="default"
-                size="small"
-                onClick={() => {
-                  form.resetFields();
-                  questionForm.resetFields();
-                  setQuestions([]);
-                  setEditingQuizId(null);
-                }}
-              >
-                🔙 Back to Create New
-              </Button>
-            )}
-          </div>
-        }
-        style={{ marginBottom: 24 }}
-      >
-        {quizzes.length === 0 ? (
-          <p>No quizzes found.</p>
-        ) : (
-          <Row gutter={[16, 16]}>
-            {quizzes.map((q) => (
-              <Col key={q._id} xs={24} sm={12} md={8} lg={6}>
-                <Card
-                  title={<strong>{q.quizname}</strong>}
-                  extra={<span style={{ fontStyle: "italic" }}>{q.category}</span>}
-                  size="small"
-                  actions={[
-                    <Button type="link" onClick={() => handleEditQuiz(q)}>
-                      ✏️ Edit
-                    </Button>,
-                    <Button danger type="link" onClick={() => handleDeleteQuiz(q._id)}>
-                      🗑️ Delete
-                    </Button>,
-                  ]}
-                />
-              </Col>
-            ))}
-          </Row>
-        )}
-      </Card>
+  title={
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <span>📚 Existing Quizzes</span>
+      {editingQuizId && (
+        <Button
+          type="default"
+          size="small"
+          onClick={() => {
+            form.resetFields();
+            questionForm.resetFields();
+            setQuestions([]);
+            setEditingQuizId(null);
+          }}
+        >
+          🔙 Back to Create New
+        </Button>
+      )}
+    </div>
+  }
+  style={{ marginBottom: 24 }}
+>
+  <Input
+    placeholder="🔍 Search quizzes..."
+    value={searchTerm}
+    onChange={(e) => {
+      setSearchTerm(e.target.value);
+      setCurrentPage(1); // reset pagination on new search
+    }}
+    style={{ marginBottom: 16 }}
+  />
+
+  {filteredQuizzes.length === 0 ? (
+    <p>No quizzes found.</p>
+  ) : (
+    <>
+      <Row gutter={[16, 16]}>
+        {paginatedQuizzes.map((q) => (
+          <Col key={q._id} xs={24} sm={12} md={8} lg={6}>
+            <Card
+              title={<strong>{q.quizname}</strong>}
+              extra={<span style={{ fontStyle: "italic" }}>{q.category}</span>}
+              size="small"
+              actions={[
+                <Button type="link" onClick={() => handleEditQuiz(q)}>
+                  ✏️ Edit
+                </Button>,
+                <Button danger type="link" onClick={() => handleDeleteQuiz(q._id)}>
+                  🗑️ Delete
+                </Button>,
+              ]}
+            />
+          </Col>
+        ))}
+      </Row>
+
+      <div style={{ textAlign: "center", marginTop: 16 }}>
+        <Pagination
+          current={currentPage}
+          pageSize={pageSize}
+          total={filteredQuizzes.length}
+          onChange={(page) => setCurrentPage(page)}
+        />
+      </div>
+    </>
+  )}
+</Card>
+
       <Card
   title="🤖 Generate Questions with AI"
   style={{ marginBottom: 24 }}

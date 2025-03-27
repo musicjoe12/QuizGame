@@ -77,3 +77,33 @@
         transform: scale(1);
     }
 }
+@media (max-width: 768px) {
+    .indicator-wrapper {
+      bottom: 120px;
+      right: 50%;
+      transform: translateX(50%);
+      flex-direction: row;
+      gap: 10px;
+      align-items: center;
+    }
+  
+    .numbers-grid,
+    .bonus-grid {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto;
+      width: auto;
+      padding: 8px;
+    }
+  
+    .result-image {
+      width: 100px;
+      height: auto;
+    }
+  
+    .topslot-overlay {
+      width: 30px;
+      top: -4px;
+      right: -4px;
+    }
+  }
+  

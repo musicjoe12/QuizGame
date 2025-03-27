@@ -4,22 +4,26 @@ const generateQuestions = async (req, res) => {
   const { topic, count = 5 } = req.body;
 
   const prompt = `Generate ${count} quiz questions about "${topic}".
-Include a balanced variety of question types: "multiple_choice", "true_false", and "fill_in_the_blank".
-Format each question as JSON with these fields:
-- question (string),
-- type ("multiple_choice", "true_false", "fill_in_the_blank"),
-- difficulty ("easy", "medium", "hard"),
-- correct_answer (string),
-- choices (array of strings, only for multiple_choice). 
+Include a balanced mix of the following types:
+- "multiple_choice"
+- "true_false"
+- "fill_in_the_blank"
 
-Respond with a JSON array.`;
+Format each question as a JSON object with these fields:
+- question (string)
+- type ("multiple_choice", "true_false", or "fill_in_the_blank")
+- difficulty ("easy", "medium", or "hard")
+- correct_answer (string)
+- choices (array of 4 strings ONLY for "multiple_choice")
 
+Respond ONLY with a valid JSON array.
+`;
 
   try {
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model: "mistralai/mistral-7b-instruct", // ✅ Free model
+        model: "google/gemini-pro", // ✅ Choose your free model here
         messages: [
           {
             role: "user",
@@ -31,15 +35,24 @@ Respond with a JSON array.`;
         headers: {
           Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": "http://localhost:3000", // optional for openrouter
+          "HTTP-Referer": "http://localhost:3000", // optional
         },
       }
     );
 
-    const raw = response.data.choices[0].message.content;
-
+    let raw = response.data.choices[0].message.content;
     console.log("🧠 AI Raw Output:\n", raw);
 
+    // ✅ Strip markdown code blocks if present
+    raw = raw.trim();
+    if (raw.startsWith("```")) {
+      raw = raw.replace(/^```json/, "")
+               .replace(/^```/, "")
+               .replace(/```$/, "")
+               .trim();
+    }
+
+    // ✅ Parse cleaned JSON
     let questions;
     try {
       questions = JSON.parse(raw);
@@ -54,7 +67,10 @@ Respond with a JSON array.`;
     res.json(questions);
   } catch (error) {
     console.error("❌ OpenRouter AI error:", error.response?.data || error.message);
-    res.status(500).json({ message: "AI generation failed", error: error.message });
+    res.status(500).json({
+      message: "AI generation failed",
+      error: error.message,
+    });
   }
 };
 

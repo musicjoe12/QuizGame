@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Card, Button, Grid, TextField, Typography, Box } from '@mui/material';
+import { Card, Button, Grid, TextField, Typography, Box, } from '@mui/material';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import "../Css/ResultsDisplay.css";
@@ -23,35 +23,53 @@ const ResultsDisplay = () => {
     const [questionVisible, setQuestionVisible] = useState(false);
     const [pendingBonusPoints, setPendingBonusPoints] = useState(0);
     const [topSlotResult, setTopSlotResult] = useState(null);
-    const [lastResultTimestamp, setLastResultTimestamp] = useState(null);
+    const [lastResultTimestamp, setLastResultTimestamp] = useState(() => {
+        return localStorage.getItem("lastResultTimestamp") || null;
+      });    
+    const [availableQuizzes, setAvailableQuizzes] = useState([]);
+    const [selectedQuizId, setSelectedQuizId] = useState(null);
+
 
 
     useEffect(() => {
+        if (!selectedQuizId) return; 
+      
         const eventSource = new EventSource('http://localhost:5000/api/result-stream');
-
+      
         eventSource.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                console.log('✅ New Result Received:', data);
-
-                if (data.wheel) {
-                    handleWheelResult(data.wheel);
-                }
-                if (data.topslot) {
-                    setTopSlotResult(data.topslot); 
-                }
-            } catch (error) {
-                console.error('❌ Failed to parse SSE result:', error);
+          try {
+            const data = JSON.parse(event.data);
+            console.log('✅ New Result Received:', data);
+      
+            if (data.wheel) {
+              handleWheelResult(data.wheel);
             }
+            if (data.topslot) {
+              setTopSlotResult(data.topslot); 
+            }
+          } catch (error) {
+            console.error('❌ Failed to parse SSE result:', error);
+          }
         };
-
+      
         eventSource.onerror = (error) => {
-            console.error('❌ SSE Connection Error:', error);
-            eventSource.close();
+          console.error('❌ SSE Connection Error:', error);
+          eventSource.close();
         };
-
+      
         return () => eventSource.close();
-    }, [quizLoaded]);
+      }, [selectedQuizId]);
+      
+
+    useEffect(() => {
+        axios.get("http://localhost:5000/api/quizzes")
+          .then((res) => {
+            setAvailableQuizzes(res.data);
+          })
+          .catch((err) => {
+            console.error("❌ Could not fetch quiz list:", err);
+          });
+      }, []);
 
     useEffect(() => {
         if (timeLeft > 0 && questionVisible) {
@@ -75,34 +93,37 @@ const ResultsDisplay = () => {
     };
 
     const handleWheelResult = (wheelData) => {
-        const result = wheelData.result;
-        const finalPoints = wheelData.finalPoints || 0;
-        const timestamp = wheelData.timestamp;
-    
+        const { result, finalPoints = 0, timestamp } = wheelData;
+      
         if (!MAIN_WHEEL_RESULTS.includes(result)) return;
-    
-        // ✅ Skip if we've already handled this result
-        if (timestamp === lastResultTimestamp) {
-            console.log("⚠️ Duplicate result ignored.");
-            return;
+      
+        // ✅ Block old or duplicate timestamps
+        const lastTimestamp = Number(localStorage.getItem("lastResultTimestamp"));
+        if (!selectedQuizId || timestamp <= lastTimestamp) {
+          console.log("⚠️ Ignoring duplicate or stale result.");
+          return;
         }
-    
-        console.log("🎡 New Result:", result, "Points:", finalPoints);
-    
+      
+        console.log("🎡 Valid New Result:", result, "Points:", finalPoints);
+      
         setResult(result);
         setPendingBonusPoints(finalPoints);
-        setLastResultTimestamp(timestamp); // ✅ Store latest timestamp
-    
-        if (!quizLoaded) {
-            fetchQuiz("67a62bc5db2f59cfc4386b03").then(() => {
-                setQuizLoaded(true);
-                showQuestion();
-            });
-        } else {
-            showQuestion();
-        }
-    };
+        setLastResultTimestamp(timestamp);
+        localStorage.setItem("lastResultTimestamp", timestamp);
+      
+        // ✅ fetch + show only when quiz is selected and timestamp is valid
+        fetchQuiz(selectedQuizId);
+      };
+      
 
+    useEffect(() => {
+        if (quiz && quiz.questions?.length > 0) {
+          console.log("✅ Quiz ready with questions. Showing question...");
+          setQuizLoaded(true);
+          showQuestion();
+        }
+      }, [quiz]);
+      
     const showQuestion = () => {
         if (!quiz || quiz.questions.length === 0) return;
         const randomIndex = Math.floor(Math.random() * quiz.questions.length);
@@ -172,10 +193,29 @@ const ResultsDisplay = () => {
                         </Typography>
                     )}
                     </Box>
+                    {!selectedQuizId && (
+  <Card sx={{ width: 500, margin: "20px auto", padding: 3 }}>
+    <Typography variant="h6" gutterBottom>Select a Quiz:</Typography>
+    <Grid container spacing={2}>
+      {availableQuizzes.map((quiz) => (
+        <Grid item xs={6} key={quiz._id}>
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={() => setSelectedQuizId(quiz._id)}
+          >
+            {quiz.quizname}
+          </Button>
+        </Grid>
+      ))}
+    </Grid>
+  </Card>
+)}
+
 
                 <TopslotIndicators result={normalizeResultKey(result)} topSlot={topSlotResult} />
                 {questionVisible && quiz && quiz.questions.length > 0 && (
-                    <Card sx={{ width: 600, margin: "20px auto", padding: 3 }}>
+                    <Card className="question-card" sx={{ maxWidth: 600, margin: "20px auto", padding: 3 }}>
                         <Typography variant="h6">{quiz.questions[currentQuestionIndex].question}</Typography>
                         <Grid container spacing={2} sx={{ marginTop: 2 }}>
                             {quiz.questions[currentQuestionIndex].type === "multiple_choice" && (
