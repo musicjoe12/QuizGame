@@ -228,7 +228,7 @@ const paginatedQuizzes = filteredQuizzes.slice(
 </Card>
 
       <Card
-  title="🤖 Generate Questions with AI"
+  title="🤖 Generate Questions with AI - Check Questions as AI may not be accurate"
   style={{ marginBottom: 24 }}
 >
   <Form
