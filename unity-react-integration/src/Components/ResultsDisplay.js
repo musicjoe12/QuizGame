@@ -4,7 +4,9 @@ import { Card, Button, Grid, TextField, Typography, Box, } from '@mui/material';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import "../Css/ResultsDisplay.css";
-import TopslotIndicators from './TopslotIndicators'; // at the top
+import TopslotIndicators from './TopslotIndicators'; 
+import stringSimilarity from "string-similarity";
+
 
 
 const MAIN_WHEEL_RESULTS = ["Result1", "Result2", "Result5", "Result10", "CoinToss", "Plinko"];
@@ -134,21 +136,40 @@ const ResultsDisplay = () => {
 
     const handleAnswerClick = async (selected) => {
         if (!quiz) return;
+    
         const currentQuestion = quiz.questions[currentQuestionIndex];
         const correctAnswer = currentQuestion.correct_answer;
-        const isCorrect = selected.toLowerCase() === correctAnswer.toLowerCase();
+        const userInput = selected.trim().toLowerCase();
+        let isCorrect = false;
+    
+        if (currentQuestion.type === "fill_in_the_blank") {
+            // Fuzzy match using string similarity
+            if (Array.isArray(correctAnswer)) {
+                // Support multiple valid answers
+                isCorrect = correctAnswer.some(ans =>
+                    stringSimilarity.compareTwoStrings(userInput, ans.toLowerCase().trim()) > 0.7
+                );
+            } else {
+                // Single answer
+                const similarity = stringSimilarity.compareTwoStrings(userInput, correctAnswer.toLowerCase().trim());
+                isCorrect = similarity > 0.7; // Threshold can be adjusted
+            }
+        } else {
+            // Strict match for multiple choice / true_false
+            isCorrect = userInput === correctAnswer.toLowerCase();
+        }
     
         if (isCorrect) {
             const pointsToAdd = pendingBonusPoints;
+    
             setPoints(prev => {
                 const newPoints = prev + pointsToAdd;
-                localStorage.setItem("points", newPoints); // ✅ Keep it in sync
+                localStorage.setItem("points", newPoints);
                 return newPoints;
-              });
-              
+            });
+    
             console.log("✅ Correct! Points awarded:", pointsToAdd);
     
-            // ✅ If user is logged in, update backend
             const userId = localStorage.getItem("userId");
             if (userId) {
                 try {
@@ -166,8 +187,9 @@ const ResultsDisplay = () => {
         }
     
         setQuestionVisible(false);
-        setPendingBonusPoints(0); // reset
+        setPendingBonusPoints(0); // Reset bonus
     };
+    
     
 
     const handleInputSubmit = () => {

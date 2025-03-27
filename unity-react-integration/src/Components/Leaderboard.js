@@ -9,7 +9,8 @@ const Leaderboard = () => {
   useEffect(() => {
     axios.get("http://localhost:5000/api/users/leaderboard")
       .then(response => {
-        setUsers(response.data);
+        const sorted = response.data.sort((a, b) => b.points - a.points); 
+        setUsers(sorted);
         setLoading(false);
       })
       .catch(error => {
@@ -18,6 +19,7 @@ const Leaderboard = () => {
         setLoading(false);
       });
   }, []);
+  
 
   const columns = [
     {
