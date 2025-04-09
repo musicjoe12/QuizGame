@@ -3,7 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const connectDB = require('./database');
 const userRoutes = require('./Routes/userRoutes');
-const quizRoutes = require('./routes/quizRoutes');
+const quizRoutes = require('./Routes/quizRoutes');
 require('dotenv').config({ path: './config.env' });
 const openAIRoutes = require('./Routes/openAIRoutes');
 
