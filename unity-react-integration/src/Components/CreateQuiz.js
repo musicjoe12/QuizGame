@@ -162,7 +162,7 @@ const paginatedQuizzes = filteredQuizzes.slice(
       <Card
   title={
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <span>📚 Existing Quizzes</span>
+      <span> Existing Quizzes</span>
       {editingQuizId && (
         <Button
           type="default"
@@ -182,7 +182,7 @@ const paginatedQuizzes = filteredQuizzes.slice(
   style={{ marginBottom: 24 }}
 >
   <Input
-    placeholder="🔍 Search quizzes..."
+    placeholder=" Search quizzes..."
     value={searchTerm}
     onChange={(e) => {
       setSearchTerm(e.target.value);
@@ -228,7 +228,7 @@ const paginatedQuizzes = filteredQuizzes.slice(
 </Card>
 
       <Card
-  title="🤖 Generate Questions with AI - Check Questions as AI may not be accurate"
+  title=" Generate Questions with AI - Check Questions as AI may not be accurate"
   style={{ marginBottom: 24 }}
 >
   <Form
@@ -272,7 +272,7 @@ const paginatedQuizzes = filteredQuizzes.slice(
 
       <div className="create-quiz-layout">
         {/* Quiz Info */}
-        <Card title="🧠 Quiz Info" style={{ width: 300 }}>
+        <Card title=" Quiz Info" style={{ width: 300 }}>
           <Form form={form} layout="vertical" onFinish={handleSubmitQuiz}>
             <Form.Item label="Quiz Title" name="title" rules={[{ required: true }]}>
               <Input />

@@ -40,6 +40,16 @@ const Navbar = ({ user, setUser }) => {
               </Menu.Item>
             </>
           )}
+          <Menu.Item key="feedback">
+  <a
+    href="https://docs.google.com/forms/d/e/1FAIpQLSe7C7BeTUhROUhQNnCoSV33RAWHMNRpZevFaic--XpQKUviJA/viewform?usp=dialog"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    📝 Feedback
+  </a>
+</Menu.Item>
+
           {user && role === "Staff" && (
             <Menu.Item key="createQuiz">
               <Link to="/create-quiz">🛠️ Create Quiz</Link>
