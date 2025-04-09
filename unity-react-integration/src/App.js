@@ -15,34 +15,60 @@ const { Content } = Layout;
 const AppContent = () => {
   const location = useLocation();
   const [user, setUser] = useState(null);
+  const [sessionIdReady, setSessionIdReady] = useState(false);
 
   useEffect(() => {
+    // 🔐 Set logged in user
     const storedUser = localStorage.getItem("username");
-    if (storedUser) {
-      setUser(storedUser);
+    if (storedUser) setUser(storedUser);
+
+    // 🔄 Listen for Unity's session ID call
+    window.receiveSessionIdFromUnity = (id) => {
+      console.log("🌐 Received sessionId from Unity:", id);
+      sessionStorage.setItem("sessionId", id);
+      setSessionIdReady(true);
+    };
+
+    // 🧠 Use previously stored sessionId if available (page refresh)
+    const storedSession = sessionStorage.getItem("sessionId");
+    if (storedSession) {
+      console.log("📦 Session already exists in storage:", storedSession);
+      setSessionIdReady(true);
     }
   }, []);
 
-  // Determine if Unity should be visible
   const isGamePage = location.pathname === "/";
 
   return (
     <>
-      {/* Navbar always visible above the Unity canvas */}
+      {/* 🧭 Navbar always shown */}
       <div className="navbar-wrapper">
         <Navbar user={user} setUser={setUser} />
       </div>
 
-      {/* Unity Game - stays mounted but toggles visibility */}
+      {/* 🕹 Unity always loaded, just hidden when not on "/" */}
       <div className="persistent-unity" style={{ display: isGamePage ? "block" : "none" }}>
         <UnityGame />
       </div>
 
-      {/* Page Content */}
       <Layout>
-        <div className="app-content"> 
+        <div className="app-content">
           <Routes>
-            <Route path="/" element={[<ResultDisplay />, <ResultHistory />]} />
+            <Route
+              path="/"
+              element={
+                sessionIdReady ? (
+                  <>
+                    <ResultDisplay />
+                    <ResultHistory />
+                  </>
+                ) : (
+                  <div style={{ color: "#fff", textAlign: "center", marginTop: "80px" }}>
+                    🕐 Waiting for Unity session ID...
+                  </div>
+                )
+              }
+            />
             <Route path="/login" element={<Login setUser={setUser} />} />
             <Route path="/register" element={<Register />} />
             <Route path="/leaderboard" element={<Leaderboard />} />

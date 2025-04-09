@@ -31,12 +31,21 @@ const ResultsDisplay = () => {
     const [availableQuizzes, setAvailableQuizzes] = useState([]);
     const [selectedQuizId, setSelectedQuizId] = useState(null);
 
-
-
-    useEffect(() => {
-        if (!selectedQuizId) return; 
+    const [sessionId] = useState(() => {
+        return sessionStorage.getItem("sessionId");
+      });
       
-        const eventSource = new EventSource('http://localhost:5000/api/result-stream');
+      useEffect(() => {
+        window.receiveSessionIdFromUnity = (sessionId) => {
+          console.log("🌐 React received session ID:", sessionId);
+          sessionStorage.setItem("sessionId", sessionId);
+        };
+      }, []);
+      useEffect(() => {
+        if (!selectedQuizId) return;
+        console.log("🛰️ Connecting to SSE with sessionId:", sessionId);
+        console.log("🔗 URL:", `http://localhost:5000/api/result-stream?sessionId=${sessionId}`);
+        const eventSource = new EventSource(`http://localhost:5000/api/result-stream?sessionId=${sessionId}`);
       
         eventSource.onmessage = (event) => {
           try {
@@ -60,7 +69,8 @@ const ResultsDisplay = () => {
         };
       
         return () => eventSource.close();
-      }, [selectedQuizId]);
+      }, [selectedQuizId, sessionId]);
+      
       
 
     useEffect(() => {

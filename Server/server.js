@@ -23,73 +23,94 @@ connectDB();
 // ✅ Store latest results
 let currentResult = null;
 let topSlotResult = null;
-let clients = []; // Stores connected clients
+let sessions = {}; // sessionId -> { result, topSlot }
+let clients = {};  // sessionId -> array of res objects
 
 // ✅ Log Top Slot Results Before Wheel Lands
 app.post('/api/topslot', (req, res) => {
-    const { result, multiplier } = req.body;
+    const { sessionId, result, multiplier } = req.body;
 
-    if (!result || multiplier === undefined) {
-        console.error('❌ Invalid Top Slot data received:', req.body);
-        return res.status(400).json({ message: 'Invalid Top Slot data' });
+    if (!sessionId || !result || multiplier === undefined) {
+        return res.status(400).json({ message: 'Missing or invalid Top Slot data' });
     }
 
-    console.log(`🎰 Top Slot Result: ${result}, Multiplier: ${multiplier}x`);
-    topSlotResult = { result, multiplier };
+    const topSlotData = { result, multiplier };
+    sessions[sessionId] = sessions[sessionId] || {};
+    sessions[sessionId].topSlot = topSlotData;
 
-    // ✅ Send update to clients
-    clients.forEach(client => client.write(`data: ${JSON.stringify({ topslot: topSlotResult })}\n\n`));
+    console.log(`📡 [${sessionId}] Top Slot:`, topSlotData);
+
+    if (clients[sessionId]) {
+        clients[sessionId].forEach(client =>
+            client.write(`data: ${JSON.stringify({ topslot: topSlotData })}\n\n`)
+        );
+    }
 
     res.status(200).json({ message: 'Top Slot result received' });
 });
 
+
 // ✅ Log **ALL** Results (Including Bonuses)
 app.post('/api/result', (req, res) => {
-    const { result, topSlotMultiplier, finalPoints } = req.body;
+    const { sessionId, result, topSlotMultiplier, finalPoints } = req.body;
 
-    if (!result || topSlotMultiplier === undefined || finalPoints === undefined) {
-        console.error('❌ Invalid result received:', req.body);
-        return res.status(400).json({ message: 'Invalid result or missing points' });
+    if (!sessionId || !result || topSlotMultiplier === undefined || finalPoints === undefined) {
+        return res.status(400).json({ message: 'Missing result/session data' });
     }
 
-    const timestamp = Date.now(); // ✅ Add a timestamp
+    const resultData = {
+        result,
+        topSlotMultiplier,
+        finalPoints,
+        timestamp: Date.now(),
+    };
 
-    console.log(`✅ Result Received: ${result}, Top Slot Multiplier: ${topSlotMultiplier}x, Final Points: ${finalPoints}`);
+    sessions[sessionId] = sessions[sessionId] || {};
+    sessions[sessionId].result = resultData;
 
-    // ✅ Store with timestamp
-    currentResult = { result, topSlotMultiplier, finalPoints, timestamp };
+    console.log(`📡 [${sessionId}] Result:`, resultData);
 
-    // ✅ Send update to clients
-    clients.forEach(client => client.write(`data: ${JSON.stringify({ wheel: currentResult })}\n\n`));
+    if (clients[sessionId]) {
+        clients[sessionId].forEach(client =>
+            client.write(`data: ${JSON.stringify({ wheel: resultData })}\n\n`)
+        );
+    }
 
     res.status(200).json({ message: 'Result received' });
 });
 
 
+
 // ✅ SSE Endpoint for React to listen for updates
 app.get('/api/result-stream', (req, res) => {
+    console.log("🔎 Incoming stream connection:", req.url);
+
+    const { sessionId } = req.query;
+    if (!sessionId) return res.status(400).json({ message: "Missing sessionId" });
+  
+    // Setup headers
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
+  
+    if (!clients[sessionId]) clients[sessionId] = [];
+clients[sessionId].push(res);
 
-    console.log('🔄 New client connected to result stream.');
+// Optional: send last known data
+const sessionData = sessions[sessionId];
+if (sessionData?.topSlot) {
+    res.write(`data: ${JSON.stringify({ topslot: sessionData.topSlot })}\n\n`);
+}
+if (sessionData?.result) {
+    res.write(`data: ${JSON.stringify({ wheel: sessionData.result })}\n\n`);
+}
 
-    if (topSlotResult) {
-        console.log("📡 Sending Top Slot:", topSlotResult);
-        res.write(`data: ${JSON.stringify({ topslot: topSlotResult })}\n\n`);
-    }
-    if (currentResult) {
-        console.log("📡 Sending Result:", currentResult);
-        res.write(`data: ${JSON.stringify({ wheel: currentResult })}\n\n`);
-    }
-
-    clients.push(res);
-
-    req.on('close', () => {
-        console.log('❌ Client disconnected from result stream.');
-        clients = clients.filter(client => client !== res);
-    });
+req.on('close', () => {
+    clients[sessionId] = clients[sessionId].filter(client => client !== res);
 });
+  });
+  
+
 
 // ✅ Other API Routes
 app.use('/api/users', userRoutes);
