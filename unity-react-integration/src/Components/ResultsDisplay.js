@@ -34,6 +34,8 @@ const ResultsDisplay = () => {
     const [sessionId] = useState(() => {
         return sessionStorage.getItem("sessionId");
       });
+      const [isAnswering, setIsAnswering] = useState(false);
+
       
       useEffect(() => {
         window.receiveSessionIdFromUnity = (sessionId) => {
@@ -146,8 +148,9 @@ const ResultsDisplay = () => {
     };
 
     const handleAnswerClick = async (selected) => {
-        if (!quiz) return;
-    
+        if (!quiz || isAnswering) return;    
+        setIsAnswering(true);
+
         const currentQuestion = quiz.questions[currentQuestionIndex];
         const correctAnswer = currentQuestion.correct_answer;
         const userInput = selected.trim().toLowerCase();
@@ -199,6 +202,7 @@ const ResultsDisplay = () => {
     
         setQuestionVisible(false);
         setPendingBonusPoints(0); // Reset bonus
+        setIsAnswering(false);
     };
     
     
@@ -215,91 +219,131 @@ const ResultsDisplay = () => {
     
     return (
         <DndProvider backend={HTML5Backend}>
-            <Box className="results-container">
-                    <Box className="user-points-box">
-                    <Typography variant="h6" className="points-label">
-                        🪙 Points: {points}
-                    </Typography>
-                    {localStorage.getItem("username") && (
-                        <Typography variant="subtitle2" className="username-label">
-                        👤 Logged in as: {localStorage.getItem("username")}
-                        </Typography>
-                    )}
-                    </Box>
-                    {!selectedQuizId && (
-  <Card sx={{ width: 500, margin: "20px auto", padding: 3 }}>
-    <Typography variant="h6" gutterBottom>Select a Quiz:</Typography>
-    <Grid container spacing={2}>
-      {availableQuizzes.map((quiz) => (
-        <Grid item xs={6} key={quiz._id}>
-          <Button
-            fullWidth
-            variant="outlined"
-            onClick={() => setSelectedQuizId(quiz._id)}
-          >
-            {quiz.quizname}
-          </Button>
-        </Grid>
-      ))}
-    </Grid>
-  </Card>
-)}
-
-
-                <TopslotIndicators result={normalizeResultKey(result)} topSlot={topSlotResult} />
-                {questionVisible && quiz && quiz.questions.length > 0 && (
-                    <Card className="question-card" sx={{ maxWidth: 600, margin: "20px auto", padding: 3 }}>
-                        <Typography variant="h6">{quiz.questions[currentQuestionIndex].question}</Typography>
-                        <Grid container spacing={2} sx={{ marginTop: 2 }}>
-                            {quiz.questions[currentQuestionIndex].type === "multiple_choice" && (
-                                quiz.questions[currentQuestionIndex].choices.map((choice, i) => (
-                                    <Grid item xs={6} key={i}>
-                                        <Button fullWidth variant="contained" onClick={() => handleAnswerClick(choice)}>
-                                            {choice}
-                                        </Button>
-                                    </Grid>
-                                ))
-                            )}
-
-                            {quiz.questions[currentQuestionIndex].type === "true_false" && (
-                                <>
-                                    <Grid item xs={6}>
-                                        <Button fullWidth variant="contained" color="success" onClick={() => handleAnswerClick("true")}>
-                                            True
-                                        </Button>
-                                    </Grid>
-                                    <Grid item xs={6}>
-                                        <Button fullWidth variant="contained" color="error" onClick={() => handleAnswerClick("false")}>
-                                            False
-                                        </Button>
-                                    </Grid>
-                                </>
-                            )}
-
-                            {quiz.questions[currentQuestionIndex].type === "fill_in_the_blank" && (
-                                <>
-                                    <Grid item xs={12}>
-                                        <TextField
-                                            fullWidth
-                                            label="Type your answer"
-                                            value={inputAnswer}
-                                            onChange={(e) => setInputAnswer(e.target.value)}
-                                            onKeyDown={(e) => e.key === "Enter" && handleInputSubmit()}
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12}>
-                                        <Button fullWidth variant="contained" onClick={handleInputSubmit}>
-                                            Submit
-                                        </Button>
-                                    </Grid>
-                                </>
-                            )}
-                        </Grid>
-                    </Card>
-                )}
+          <Box className="results-container">
+            <Box className="user-points-box">
+              <Typography variant="h6" className="points-label">
+                🪙 Points: {points}
+              </Typography>
+              {localStorage.getItem("username") && (
+                <Typography variant="subtitle2" className="username-label">
+                  👤 Logged in as: {localStorage.getItem("username")}
+                </Typography>
+              )}
             </Box>
+      
+            {!selectedQuizId && (
+              <Card sx={{ width: 500, margin: "20px auto", padding: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  Select a Quiz:
+                </Typography>
+                <Grid container spacing={2}>
+                  {availableQuizzes.map((quiz) => (
+                    <Grid item xs={6} key={quiz._id}>
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        onClick={() => setSelectedQuizId(quiz._id)}
+                      >
+                        {quiz.quizname}
+                      </Button>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Card>
+            )}
+      
+            <TopslotIndicators
+              result={normalizeResultKey(result)}
+              topSlot={topSlotResult}
+            />
+      
+            {questionVisible && quiz && quiz.questions.length > 0 && (
+              <Card
+                className="question-card"
+                sx={{ maxWidth: 600, margin: "20px auto", padding: 3 }}
+              >
+                <Typography variant="h6">
+                  {quiz.questions[currentQuestionIndex].question}
+                </Typography>
+      
+                <Grid container spacing={2} sx={{ marginTop: 2 }}>
+                  {quiz.questions[currentQuestionIndex].type ===
+                    "multiple_choice" &&
+                    quiz.questions[currentQuestionIndex].choices.map(
+                      (choice, i) => (
+                        <Grid item xs={6} key={i}>
+                          <Button
+                            fullWidth
+                            variant="contained"
+                            onClick={() => handleAnswerClick(choice)}
+                            disabled={isAnswering}
+                          >
+                            {choice}
+                          </Button>
+                        </Grid>
+                      )
+                    )}
+      
+                  {quiz.questions[currentQuestionIndex].type === "true_false" && (
+                    <>
+                      <Grid item xs={6}>
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          color="success"
+                          onClick={() => handleAnswerClick("true")}
+                          disabled={isAnswering}
+                        >
+                          True
+                        </Button>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          color="error"
+                          onClick={() => handleAnswerClick("false")}
+                          disabled={isAnswering}
+                        >
+                          False
+                        </Button>
+                      </Grid>
+                    </>
+                  )}
+      
+                  {quiz.questions[currentQuestionIndex].type ===
+                    "fill_in_the_blank" && (
+                    <>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Type your answer"
+                          value={inputAnswer}
+                          onChange={(e) => setInputAnswer(e.target.value)}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && handleInputSubmit()
+                          }
+                          disabled={isAnswering}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          onClick={handleInputSubmit}
+                          disabled={isAnswering}
+                        >
+                          Submit
+                        </Button>
+                      </Grid>
+                    </>
+                  )}
+                </Grid>
+              </Card>
+            )}
+          </Box>
         </DndProvider>
-    );
-};
+      );
+}
 
 export default ResultsDisplay;
