@@ -44,8 +44,8 @@ const ResultsDisplay = () => {
       useEffect(() => {
         if (!selectedQuizId) return;
         console.log("🛰️ Connecting to SSE with sessionId:", sessionId);
-        console.log("🔗 URL:", `http://localhost:5000/api/result-stream?sessionId=${sessionId}`);
-        const eventSource = new EventSource(`http://localhost:5000/api/result-stream?sessionId=${sessionId}`);
+        console.log("🔗 URL:", `https://quizgame-backend-0k3d.onrender.com/api/result-stream?sessionId=${sessionId}`);
+        const eventSource = new EventSource(`https://quizgame-backend-0k3d.onrender.com/api/result-stream?sessionId=${sessionId}`);
       
         eventSource.onmessage = (event) => {
           try {
@@ -74,7 +74,7 @@ const ResultsDisplay = () => {
       
 
     useEffect(() => {
-        axios.get("http://localhost:5000/api/quizzes")
+        axios.get("https://quizgame-backend-0k3d.onrender.com/api/quizzes")
           .then((res) => {
             setAvailableQuizzes(res.data);
           })
