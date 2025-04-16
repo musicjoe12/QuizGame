@@ -94,7 +94,8 @@ const ResultsDisplay = () => {
 
     const fetchQuiz = async (quizId) => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/quizzes/${quizId}`);
+            const response = await axios.get(`https://quizgame-backend-0k3d.onrender.com/api/quizzes/${quizId}`);
+
             if (response.status === 200) {
                 console.log("✅ Quiz fetched:", response.data);
                 setQuiz(response.data);
@@ -183,7 +184,7 @@ const ResultsDisplay = () => {
             const userId = localStorage.getItem("userId");
             if (userId) {
                 try {
-                    await axios.put("http://localhost:5000/api/users/update-points", {
+                    await axios.put("https://quizgame-backend-0k3d.onrender.com/api/users/update-points", {
                         userId,
                         points: pointsToAdd
                     });
