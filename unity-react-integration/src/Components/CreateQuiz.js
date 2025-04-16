@@ -48,7 +48,7 @@ const pageSize = 4;
 
   const fetchQuizzes = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/quizzes");
+      const res = await axios.get("https://quizgame-backend-0k3d.onrender.com/api/quizzes");
       setQuizzes(res.data);
     } catch (err) {
       console.error("Failed to load quizzes", err);
@@ -87,10 +87,10 @@ const pageSize = 4;
 
     try {
       if (editingQuizId) {
-        await axios.put(`http://localhost:5000/api/quizzes/${editingQuizId}`, payload);
+        await axios.put(`https://quizgame-backend-0k3d.onrender.com/api/quizzes/${editingQuizId}`, payload);
         message.success("✅ Quiz updated!");
       } else {
-        await axios.post("http://localhost:5000/api/quizzes/create", payload);
+        await axios.post("https://quizgame-backend-0k3d.onrender.com/api/quizzes/create", payload);
         message.success("✅ Quiz created!");
       }
 
@@ -117,7 +117,7 @@ const pageSize = 4;
 
   const handleDeleteQuiz = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/quizzes/${id}`);
+      await axios.delete(`https://quizgame-backend-0k3d.onrender.com/api/quizzes/${id}`);
       message.success("🗑️ Quiz deleted");
       fetchQuizzes();
     } catch (err) {
@@ -129,10 +129,11 @@ const pageSize = 4;
     setAiLoading(true);
   
     try {
-      const res = await axios.post("http://localhost:5000/api/ai/generate-questions", {
-        topic,
-        count,
-      });
+      const res = await axios.post("https://quizgame-backend-0k3d.onrender.com/api/ai/generate-questions", {
+  topic,
+  count,
+});
+
   
       const generated = res.data;
   

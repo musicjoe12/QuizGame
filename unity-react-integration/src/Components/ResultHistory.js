@@ -15,9 +15,10 @@ const resultImages = {
 
 const ResultHistory = () => {
     const [results, setResults] = useState(Array(18).fill(null));
+    const [sessionId] = useState(() => sessionStorage.getItem("sessionId"));
 
     useEffect(() => {
-        const eventSource = new EventSource('http://localhost:5000/api/result-stream');
+        const eventSource = new EventSource(`https://quizgame-backend-0k3d.onrender.com/api/result-stream?sessionId=${sessionId}`);
     
         eventSource.onmessage = (event) => {
             try {

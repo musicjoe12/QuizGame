@@ -7,8 +7,8 @@ const Leaderboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/users/leaderboard")
-      .then(response => {
+    axios.get("https://quizgame-backend-0k3d.onrender.com/api/users/leaderboard")
+    .then(response => {
         const sorted = response.data.sort((a, b) => b.points - a.points); 
         setUsers(sorted);
         setLoading(false);

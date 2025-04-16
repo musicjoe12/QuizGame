@@ -14,8 +14,8 @@ const Login = ({ setUser }) => {
     setLoading(true);
     setError(null);
 
-    axios.post("http://localhost:5000/api/users/login", values)
-      .then(response => {
+    axios.post("https://quizgame-backend-0k3d.onrender.com/api/users/login", values)
+    .then(response => {
         console.log("✅ Login successful:", response.data);
         message.success("✅ Login successful!");
 
