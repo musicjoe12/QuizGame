@@ -1,44 +1,33 @@
-/* Invisible hover area at the top */
+/* Navbar is always visible and fixed at the top */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background-color: rgba(0, 0, 0, 0.9); /* Semi-transparent background */
+  color: white;
+  z-index: 1002;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+/* You no longer need the hover container */
 .navbar-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 10px; /* Small hover trigger area */
-    z-index: 1003;
-  }
-  
-  /* Navbar starts off-screen */
-  .navbar {
-    position: fixed;
-    top: -60px; /* Move navbar completely off-screen */
-    left: 0;
-    width: 100%;
-    height: 60px;
-    background-color: rgba(0, 0, 0, 0.9); /* Semi-transparent when shown */
-    color: white;
-    z-index: 1002;
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-    transition: top 0.3s ease-in-out; /* Smooth slide animation */
-  }
-  
-  /* Navbar appears when hovering over the trigger area */
-  .navbar-container:hover + .navbar,
-  .navbar:hover {
-    top: 0; /* Navbar slides down */
-  }
-  .navbar-user {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding-right: 20px;
-    color: white;
-  }
-  
-  .navbar-user span {
-    font-weight: bold;
-    color: rgb(180, 216, 18);
-  }
-  
+  display: none; /* or just delete this whole rule */
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 20px;
+  color: white;
+}
+
+.navbar-user span {
+  font-weight: bold;
+  color: rgb(180, 216, 18);
+}
